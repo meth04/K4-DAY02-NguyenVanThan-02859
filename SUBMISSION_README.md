@@ -11,10 +11,12 @@ Notebook chạy end-to-end: **tự động clone repo → tải dataset → trai
 2. `Runtime → Change runtime type → GPU (T4)`.
 3. `Runtime → Run all`. Notebook tự mount Drive (lưu bền), clone repo, tải `images.zip`
    (~490 MB, kiểm MD5), giải nén, train và sinh:
-   `results.xlsx`, `report.md`, `curves/`, `predictions/`, `eval_out/`.
+   `results.xlsx`, `report.md`, `curves/`, `predictions/`, `logs/`, `eval_out/`.
+   Ảnh và checkpoint được đọc/ghi trên **đĩa local `/content`** cho nhanh; chỉ sản phẩm cuối
+   được copy về repo trên Drive.
 4. Commit kết quả (không commit dataset/checkpoint):
    ```bash
-   git add code results.xlsx report.md curves predictions SUBMISSION_README.md
+   git add code results.xlsx report.md curves predictions logs SUBMISSION_README.md
    git commit -m "Lab Day 2: ket qua chung ket"
    git push
    ```
@@ -39,6 +41,7 @@ Xem [`requirements.txt`](requirements.txt). Colab đã có `torch`/`torchvision`
 ├── report.md                 # báo cáo kết luận (GUIDE.md mục 6.3)
 ├── curves/                   # mỗi exp_id một ảnh (loss/metric theo epoch)
 ├── predictions/              # <exp_id>_seed<k>_{test,val}.csv cho chung kết (F01) và mốc (T00)
+├── logs/                     # config/summary/history của mọi lần chạy (truy vết exp_id)
 ├── code/                     # toàn bộ code (bộ khung starter/ đã hoàn thiện)
 │   ├── lab_day2.ipynb        # notebook Colab chạy end-to-end
 │   ├── dataset.py model.py losses.py train.py inference.py benchmark.py study.py
