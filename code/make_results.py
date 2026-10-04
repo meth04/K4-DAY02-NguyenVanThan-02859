@@ -89,6 +89,7 @@ def main():
     meta = _load_json(out_dir / "backbone_meta.json") or {}
     latency = _load_json(out_dir / "latency.json") or []
     inference = _load_json(out_dir / "inference.json") or []
+    bb_latency = _load_json(out_dir / "backbone_latency.json") or {}
 
     def gmac_of(backbone):
         return meta.get(backbone, {}).get("gmac", "")
@@ -102,13 +103,15 @@ def main():
         if not str(r["exp_id"]).startswith("B"):
             continue
         lat = next((l for l in latency if l.get("exp_id") == r["exp_id"]), {})
+        bl = bb_latency.get(r["exp_id"], {})
+        p50 = lat.get("p50") or bl.get("p50", "")
         b_rows.append({
             "exp_id": r["exp_id"], "backbone": r["backbone"], "tag trọng số": tag_of(r),
             "#params (M)": round(r["params_m"], 2), "GMAC": gmac_of(r["backbone"]),
             "độ phân giải": r.get("cfg_img_size", 224), "epoch": r["epochs"], "seed": r["seed"],
             "macro-F1 val": round(r["val_macro_f1"], 4), "top-1 val": round(r["val_top1"], 4),
             "train/epoch (s)": round(r["train_time_per_epoch_s"], 1),
-            "độ trễ batch-1 (ms)": round(lat.get("p50", float("nan")), 2) if lat else "",
+            "độ trễ batch-1 (ms)": round(p50, 2) if p50 != "" else "",
             "ghi chú": f"best epoch {r['best_epoch']}",
         })
     backbones = pd.DataFrame(b_rows)

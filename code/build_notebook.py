@@ -186,6 +186,20 @@ print("Ghi chu: chon backbone theo macro-F1 val; co the chon theo can bang F1/do
       "neu can trien khai thoi gian thuc (xem bang Latency).")
 ''')
 
+md("Đo độ trễ sơ bộ batch-1 của từng backbone (warmup + synchronize):")
+code('''import torch
+lat_bb = {}
+for eid, bb in BACKBONES:
+    cfg = train.Config(**json.load(open(f"runs/{eid}/seed0/config.json")))
+    m = model.build_model(bb, pretrained=False, num_classes=9).to("cuda").eval()
+    m.load_state_dict(torch.load(f"runs/{eid}/seed0/best.pt", map_location="cuda")["state_dict"])
+    r = benchmark.latency_report(m, 1, 224, "fp32", "cuda", warmup=10, iters=100)
+    lat_bb[eid] = r
+    print(f"{eid} {bb}: p50={r['p50']:.1f}ms p95={r['p95']:.1f}ms")
+    del m; torch.cuda.empty_cache()
+json.dump(lat_bb, open("runs/backbone_latency.json", "w"))
+''')
+
 md("""## 7. Bước 2 — Công thức huấn luyện (≥ 3 trục, mỗi lần khác nền 1 yếu tố)
 
 Trục: A khởi tạo, B augmentation, C loss, D sampler, E optimizer/LR, F EMA, G độ phân giải.
