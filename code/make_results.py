@@ -139,6 +139,12 @@ def main():
     training = pd.DataFrame(t_rows)
 
     # ---------------- Inference ----------------
+    inference_config = _load_json(out_dir / args.final / "seed0" / "config.json") or {}
+    for row in inference:
+        if row.get("exp_id") == "I00":
+            precision = ("AMP BF16" if inference_config.get("amp_dtype") == "bfloat16" else "AMP FP16") \
+                        if inference_config.get("amp", True) else "FP32"
+            row["phương pháp"] = f"1-view {precision}"
     inference_df = pd.DataFrame(inference) if inference else pd.DataFrame(
         columns=["exp_id", "phương pháp", "mô hình/checkpoint", "K", "macro-F1 val",
                  "top-1 val", "ECE val", "p50 (ms)", "p95 (ms)", "p99 (ms)",
