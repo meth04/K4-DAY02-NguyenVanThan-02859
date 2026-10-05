@@ -1,20 +1,26 @@
-"""Build a self-contained Colab notebook from the current source snapshot."""
+"""Build a readable Colab notebook that downloads a pinned GitHub revision."""
 from __future__ import annotations
 
-import base64
-import gzip
+import argparse
 import json
+import re
+import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+DEFAULT_SOURCE_REF = "78debfce920f39780037fe56c9dd2c0cf562df71"
 
 
-def build():
-    files = {str(p.relative_to(ROOT)).replace("\\", "/"): p.read_text(encoding="utf-8")
-             for p in sorted((ROOT / "code").glob("*.py"))}
-    for name in ("eval.py", "README.md", "GUIDE.md", "RUBRIC.md", "SUBMISSION_README.md", "LAB_STATUS.md", "requirements.txt"):
-        files[name] = (ROOT / name).read_text(encoding="utf-8")
-    payload = base64.b64encode(gzip.compress(json.dumps(files, ensure_ascii=False).encode("utf-8"), mtime=0)).decode("ascii")
+def build(source_ref=None):
+    if source_ref is None:
+        environment_path = ROOT / "environment.json"
+        if environment_path.exists():
+            source_ref = json.loads(environment_path.read_text(encoding="utf-8")).get("source_commit")
+        if source_ref is None and (ROOT / ".git").exists():
+            source_ref = subprocess.check_output(["git", "-C", str(ROOT), "rev-parse", "HEAD"], text=True).strip()
+        source_ref = source_ref or DEFAULT_SOURCE_REF
+    if not re.fullmatch(r"[0-9a-f]{40}", source_ref):
+        raise ValueError("source_ref phải là commit SHA đầy đủ (40 ký tự).")
     cells = []
 
     def cell(kind, source):
@@ -27,7 +33,7 @@ def build():
 
 **Cách chạy:** tải notebook này lên [Google Colab](https://colab.research.google.com/),
 chọn **Runtime → Change runtime type → GPU**, rồi **Run all**.
-Notebook chứa toàn bộ code hiện tại; không cần clone repo hay push GitHub trước.
+Notebook tự tải code từ GitHub theo một commit cố định. Các cell chỉ chứa code đọc được.
 
 Lab cần: fold 0 nguyên bản; ≥5 backbone; ≥3 trục huấn luyện; ≥4 phương pháp suy luận
 ngoài mốc; chung kết và mốc ≥3 seed; chọn mọi thứ trên val; test chỉ đánh giá cuối cùng.
@@ -69,30 +75,49 @@ print("GPU:", torch.cuda.get_device_name(0))
 print("torch:", torch.__version__, "torchvision:", torchvision.__version__, "timm:", timm.__version__)
 print("Profile:", PROFILE, "| RAM workers:", min(4, os.cpu_count() or 2))
 ''')
-    cell("markdown", "## 3. Bung code có sẵn trong notebook + lưu Drive")
-    cell("code", f'''import base64, gzip
-SOURCE_BUNDLE = {payload!r}
-snapshot = json.loads(gzip.decompress(base64.b64decode(SOURCE_BUNDLE)))
+    cell("markdown", """## 3. Tải code từ GitHub
+
+Tải một lần từ commit đã chốt; lần chạy sau dùng lại file tải sẵn.
+Code Python nằm trong thư mục `code/`, có thể mở để xem từng module.
+""")
+    cell("code", f'''from urllib.request import urlretrieve
+from zipfile import ZipFile
+
+REPO = "meth04/K4-DAY02-NguyenVanThan-02859"
+SOURCE_COMMIT = "{source_ref}"
+archive_path = Path(ROOT).parent / f"deepweeds_source_{{SOURCE_COMMIT}}.zip"
+if not archive_path.exists():
+    temporary = archive_path.with_suffix(".download")
+    urlretrieve(f"https://codeload.github.com/{{REPO}}/zip/{{SOURCE_COMMIT}}", temporary)
+    temporary.replace(archive_path)
+
 root = Path(ROOT)
 root.mkdir(parents=True, exist_ok=True)
-for relative, source in snapshot.items():
-    target = root / relative
-    target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(source, encoding="utf-8")
+with ZipFile(archive_path) as archive:
+    for member in archive.namelist():
+        relative = member.partition("/")[2]
+        if relative.endswith(".py") or relative in {{"README.md", "GUIDE.md", "RUBRIC.md", "SUBMISSION_README.md", "LAB_STATUS.md", "requirements.txt"}}:
+            target = root / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(archive.read(member))
+print("Code:", root / "code", "| commit:", SOURCE_COMMIT[:7])
+''')
+    cell("markdown", "### 3.1. Lưu kết quả trên Drive và khởi tạo lab")
+    cell("code", '''
 sys.path.insert(0, str(root))
 sys.path.insert(0, str(root / "code"))
 BACKUP = None
 if SAVE_TO_DRIVE:
     from google.colab import drive
     drive.mount("/content/drive")
-    BACKUP = f"/content/drive/MyDrive/{{SESSION}}"
+    BACKUP = f"/content/drive/MyDrive/{SESSION}"
 from colab_fast import FastLab, write_json
 lab = FastLab(ROOT, PROFILE, backup=BACKUP)
 environment = dict(python=platform.python_version(), torch=torch.__version__,
                    torchvision=torchvision.__version__, timm=timm.__version__,
                    numpy=np.__version__, pandas=pd.__version__,
                    gpu=torch.cuda.get_device_name(0), profile=PROFILE, amp_dtype=lab.dtype,
-                   snapshot_sha256=__import__("hashlib").sha256(gzip.decompress(base64.b64decode(SOURCE_BUNDLE))).hexdigest())
+                   source_repo=REPO, source_commit=SOURCE_COMMIT)
 write_json(root / "environment.json", environment)
 STARTED = time.perf_counter()
 print("Đọc ảnh / train:", root, "| Backup:", lab.backup)
@@ -267,4 +292,6 @@ Notebook không tự commit/push. Lưu notebook có output sau chạy bằng **F
 
 
 if __name__ == "__main__":
-    build()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--source-ref", help="Full Git commit SHA to download on Colab")
+    build(parser.parse_args().source_ref)

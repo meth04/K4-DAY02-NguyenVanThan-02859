@@ -27,7 +27,7 @@ Nguồn: [README.md](README.md), [GUIDE.md](GUIDE.md), [RUBRIC.md](RUBRIC.md).
   checkpoint, predictions, curves, `results.xlsx` hoặc `report.md` trong workspace.
   Nếu đã có kết quả riêng trên Drive/Colab thì chưa kiểm tra được từ đây.
 - Notebook mới [code/lab_day2.ipynb](code/lab_day2.ipynb)
-  tự chứa snapshot code, tải dữ liệu, chạy kế hoạch ưu tiên tốc độ và sinh sản phẩm.
+  tải code từ GitHub theo commit cố định, tải dữ liệu, chạy kế hoạch ưu tiên tốc độ và sinh sản phẩm.
 
 **Trạng thái:** đã chuẩn bị ảnh và triển khai pipeline; cần chạy thực nghiệm GPU,
 xem kết quả, bổ sung phân tích và nộp. Chưa thể suy ra phần trăm hoàn thành hay điểm số.

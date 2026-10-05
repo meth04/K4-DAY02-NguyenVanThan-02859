@@ -5,7 +5,8 @@ Lab Day 2: so sánh backbone, công thức huấn luyện và suy luận trên D
 ## Chạy trên Colab
 
 Dùng **[code/lab_day2.ipynb](code/lab_day2.ipynb)**.
-Notebook mới chứa toàn bộ code và eval.py trong snapshot; không cần clone/push GitHub.
+Notebook tự tải code và eval.py từ GitHub theo một commit cố định, dùng các cell ngắn,
+đọc được. Mã huấn luyện nằm trong thư mục `code/`.
 
 1. Upload notebook lên https://colab.research.google.com/ qua File → Upload notebook.
 2. Runtime → Change runtime type → GPU (T4 hoặc GPU tốt hơn được cấp).
@@ -63,7 +64,7 @@ Workbook/báo cáo chỉ sinh sau chạy thật; chưa có số liệu là chưa
 
 Môi trường: Python 3, PyTorch 2.x/CUDA và torchvision Colab có sẵn,
 timm>=1.0,<1.1, numpy, pandas, Pillow, scikit-learn, matplotlib, openpyxl.
-Version/GPU/dtype/hash snapshot thực tế lưu trong environment.json.
+Version/GPU/dtype/commit code thực tế lưu trong environment.json.
 
 Sinh lại notebook sau khi sửa code:
 
