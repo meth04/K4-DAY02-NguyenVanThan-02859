@@ -246,9 +246,12 @@ def finalize_test(exp_id: str = "F01", seeds=(0, 1, 2), method: str = "hflip",
         pv = inf.aggregate_views(lv, "prob")
         pt = inf.aggregate_views(lt, "prob")
         if temperature:
-            T = inf.fit_temperature(inf.aggregate_views(lv, "logit"), y_v)
-            pv_T = inf.apply_temperature(inf.aggregate_views(lv, "logit"), T)
-            pt_T = inf.apply_temperature(inf.aggregate_views(lt, "logit"), T)
+            # log(mean softmax) preserves the uncalibrated prediction exactly at T=1.
+            zv = np.log(np.clip(pv, 1e-12, 1.0))
+            zt = np.log(np.clip(pt, 1e-12, 1.0))
+            T = inf.fit_temperature(zv, y_v)
+            pv_T = inf.apply_temperature(zv, T)
+            pt_T = inf.apply_temperature(zt, T)
         else:
             T, pv_T, pt_T = 1.0, pv, pt
         save_predictions(pred_dir / f"{exp_id}_seed{sd}_test.csv", fn_t, y_t, pt_T)

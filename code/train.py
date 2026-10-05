@@ -87,6 +87,10 @@ class Config:
     save_test_predictions: bool = False
     # --- tăng tốc / smoke-test tuỳ chọn ---
     channels_last: bool = False
+    amp_dtype: str = "float16"       # bfloat16 on supported GPUs; float16 on T4
+    fused_optimizer: bool = False
+    patience: int | None = None      # val macro-F1 early stopping; None = all epochs
+    save_last: bool = True
     limit_train: int | None = None    # chỉ dùng cho smoke-test; None = toàn bộ train
     limit_val: int | None = None      # chỉ dùng cho smoke-test; None = toàn bộ val
 
@@ -124,7 +128,8 @@ def set_seed(seed: int) -> None:
 # --------------------------------------------------------------------------- #
 def build_optimizer(model, cfg: Config):
     groups = md.param_groups(model, cfg.lr_backbone, cfg.lr_head, cfg.weight_decay)
-    return torch.optim.AdamW(groups)
+    options = {"fused": True} if cfg.fused_optimizer and next(model.parameters()).is_cuda else {}
+    return torch.optim.AdamW(groups, **options)
 
 
 def build_scheduler(optimizer, cfg: Config, steps_per_epoch: int):
@@ -178,11 +183,13 @@ def train_one_epoch(model, loader, criterion, optimizer, scheduler, scaler, cfg:
     model.train()
     if frozen:
         # backbone đóng băng: giữ BN ở eval để không cập nhật running_mean/var
-        for name, module in model.named_children():
-            if name != "head":
-                module.eval()
+        model.eval()
+        model.get_classifier().train()
 
-    running, seen, correct = 0.0, 0, 0
+    running = torch.zeros((), device=device)
+    correct = torch.zeros((), device=device)
+    seen = 0
+    amp_dtype = torch.bfloat16 if cfg.amp_dtype == "bfloat16" else torch.float16
     for x, y, _ in loader:
         x = x.to(device, non_blocking=True)
         y = y.to(device, non_blocking=True)
@@ -195,7 +202,7 @@ def train_one_epoch(model, loader, criterion, optimizer, scheduler, scaler, cfg:
             targets = (ya, yb, lam)
 
         optimizer.zero_grad(set_to_none=True)
-        with autocast(device_type=device.type, enabled=cfg.amp):
+        with autocast(device_type=device.type, enabled=cfg.amp, dtype=amp_dtype):
             logits = model(x)
             loss = ls.mixed_loss(criterion, logits, targets) if targets else criterion(logits, y)
 
@@ -213,26 +220,30 @@ def train_one_epoch(model, loader, criterion, optimizer, scheduler, scaler, cfg:
         if ema is not None:
             ema.update(model)
 
-        running += loss.item() * y.size(0)
+        running += loss.detach() * y.size(0)
         seen += y.size(0)
         if targets is None:  # accuracy chỉ có nghĩa khi nhãn không bị trộn
-            correct += (logits.argmax(1) == y).sum().item()
+            correct += (logits.argmax(1) == y).sum().detach()
 
-    return {"train_loss": running / max(1, seen),
-            "train_acc": correct / max(1, seen),
+    return {"train_loss": running.item() / max(1, seen),
+            "train_acc": correct.item() / max(1, seen),
             "lr": optimizer.param_groups[0]["lr"]}
 
 
 @torch.no_grad()
-def evaluate(model, loader, criterion, device, amp: bool = True):
+def evaluate(model, loader, criterion, device, amp: bool = True, amp_dtype: str = "float16",
+             channels_last: bool = False):
     """Trả về (filenames, y_true, logits, loss). Giữ đúng thứ tự của loader."""
     model.eval()
     filenames, ys, logits_all = [], [], []
     total_loss, n = 0.0, 0
     for x, y, f in loader:
         x = x.to(device, non_blocking=True)
+        if channels_last:
+            x = x.contiguous(memory_format=torch.channels_last)
         y = y.to(device, non_blocking=True)
-        with autocast(device_type=device.type, enabled=amp):
+        with autocast(device_type=device.type, enabled=amp,
+                      dtype=torch.bfloat16 if amp_dtype == "bfloat16" else torch.float16):
             logits = model(x)
             loss = criterion(logits, y)
         total_loss += loss.item() * y.size(0)
@@ -337,7 +348,7 @@ def run(cfg: Config) -> dict:
     optimizer = build_optimizer(model, cfg)
     steps_per_epoch = max(1, len(train_loader))
     scheduler = build_scheduler(optimizer, cfg, steps_per_epoch)
-    scaler = GradScaler(device.type, enabled=cfg.amp) if cfg.amp else GradScaler(enabled=False)
+    scaler = GradScaler(device.type, enabled=cfg.amp and cfg.amp_dtype != "bfloat16")
     ema = EMA(model, cfg.ema_decay) if cfg.ema_decay else None
 
     # 5. vòng epoch
@@ -352,7 +363,8 @@ def run(cfg: Config) -> dict:
             ema.copy_to(eval_model)
         else:
             eval_model = model
-        fnames, y_true, logits, val_loss = evaluate(eval_model, val_loader, criterion, device, cfg.amp)
+        fnames, y_true, logits, val_loss = evaluate(eval_model, val_loader, criterion, device,
+                                                   cfg.amp, cfg.amp_dtype, cfg.channels_last)
         m = compute_metrics(y_true, logits.argmax(1), softmax_np(logits))
         dt = time.time() - t0
         history.append({"epoch": epoch, "train_loss": tr["train_loss"], "train_acc": tr["train_acc"],
@@ -365,14 +377,23 @@ def run(cfg: Config) -> dict:
         # chọn checkpoint tốt nhất theo macro-F1 val (hòa -> epoch sớm hơn)
         if m["macro_f1"] > best_f1:
             best_f1, best_epoch = m["macro_f1"], epoch
-            best_state = copy.deepcopy(eval_model.state_dict())
+            best_state = {k: v.detach().cpu().clone() for k, v in eval_model.state_dict().items()}
+            torch.save({"state_dict": best_state, "cfg": asdict(cfg), "epoch": epoch}, rdir / "best.pt")
         # lưu checkpoint mỗi epoch (chống ngắt phiên)
-        torch.save({"state_dict": eval_model.state_dict(), "epoch": epoch,
-                    "macro_f1": m["macro_f1"], "cfg": asdict(cfg)}, rdir / "last.pt")
+        if cfg.save_last:
+            torch.save({"state_dict": eval_model.state_dict(), "epoch": epoch,
+                        "macro_f1": m["macro_f1"], "cfg": asdict(cfg)}, rdir / "last.pt")
+        pd.DataFrame(history).to_csv(rdir / "history.csv", index=False)
+        if ema is not None:
+            del eval_model
+        if cfg.patience and epoch - best_epoch >= cfg.patience:
+            print(f"Early stopping: val macro-F1 không cải thiện trong {cfg.patience} epoch.")
+            break
 
     # 6. nạp checkpoint tốt nhất -> lưu val logits + predictions val
     model.load_state_dict(best_state)
-    fnames, y_true, logits, _ = evaluate(model, val_loader, criterion, device, cfg.amp)
+    fnames, y_true, logits, _ = evaluate(model, val_loader, criterion, device, cfg.amp,
+                                       cfg.amp_dtype, cfg.channels_last)
     probs = softmax_np(logits)
     np.save(rdir / "val_logits.npy", logits)
     np.save(rdir / "val_labels.npy", y_true)
@@ -405,6 +426,7 @@ def run(cfg: Config) -> dict:
         "exp_id": cfg.exp_id, "seed": cfg.seed, "backbone": cfg.backbone,
         "init": cfg.init, "loss": cfg.loss, "aug": cfg.aug, "mix": cfg.mix,
         "epochs": cfg.epochs, "best_epoch": best_epoch,
+        "epochs_run": len(history),
         "params_m": md.count_params(model),
         "val_macro_f1": float(val_metrics["macro_f1"]),
         "val_top1": float(val_metrics["top1"]),

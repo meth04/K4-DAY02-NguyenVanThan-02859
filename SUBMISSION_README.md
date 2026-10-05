@@ -1,99 +1,86 @@
 # K4-DAY02 — Nguyễn Văn Thân (02859)
 
-Bài nộp **Lab Day 2 — Backbone, công thức huấn luyện và suy luận trên DeepWeeds** (Track 4).
+Lab Day 2: so sánh backbone, công thức huấn luyện và suy luận trên DeepWeeds.
 
-## Chạy lại (Google Colab, GPU T4 trở lên)
+## Chạy trên Colab
 
-Notebook chạy end-to-end: **tự động clone repo → tải dataset → train → sinh sản phẩm**.
+Dùng **[code/lab_day2.ipynb](code/lab_day2.ipynb)**.
+Notebook mới chứa toàn bộ code và eval.py trong snapshot; không cần clone/push GitHub.
 
-1. Mở [`code/lab_day2.ipynb`](code/lab_day2.ipynb) trên Colab:
-   `https://colab.research.google.com/github/meth04/K4-DAY02-NguyenVanThan-02859/blob/main/code/lab_day2.ipynb`
-2. `Runtime → Change runtime type → GPU (T4)`.
-3. `Runtime → Run all`. Notebook tự mount Drive (lưu bền), clone repo, tải `images.zip`
-   (~490 MB, kiểm MD5), giải nén, train và sinh:
-   `results.xlsx`, `report.md`, `curves/`, `predictions/`, `logs/`, `eval_out/`.
-   Ảnh và checkpoint được đọc/ghi trên **đĩa local `/content`** cho nhanh; chỉ sản phẩm cuối
-   được copy về repo trên Drive.
-4. Commit kết quả (không commit dataset/checkpoint):
-   ```bash
-   git add code results.xlsx report.md curves predictions logs SUBMISSION_README.md
-   git commit -m "Lab Day 2: ket qua chung ket"
-   git push
-   ```
+1. Upload notebook lên https://colab.research.google.com/ qua File → Upload notebook.
+2. Runtime → Change runtime type → GPU (T4 hoặc GPU tốt hơn được cấp).
+3. Giữ PROFILE="fast", SAVE_TO_DRIVE=True, Run all và xác thực Drive.
+4. Cuối notebook tải deepweeds_submission.zip. Backup nằm trong
+   MyDrive/deepweeds_day2_v1/fast/. Ảnh train đọc từ /content.
+5. Đọc report.md bản nháp, bổ sung kết luận/giả thuyết lỗi từ số liệu thật;
+   tải thêm notebook có output để lưu bằng chứng thực nghiệm.
 
-Chế độ chạy: biến `QUICK = True` (bản rút gọn, đủ ngưỡng điểm) / `False` (đầy đủ). Chỉnh trong cell
-"Mount Google Drive + cấu hình".
+| Profile | Epoch khảo sát / chung kết | Mục đích |
+|---|---|---|
+| fast | 3 / 10 | Khảo sát ngắn, đủ nhóm thí nghiệm của kế hoạch; chất lượng cần kiểm chứng |
+| full | 12 / 15 | Thêm scratch/CutMix/focal, tăng ngân sách |
+| smoke | 1, tập con train/val | Kiểm tra pipeline; không test, không nộp |
 
-## Thư viện
+Notebook `code/lab_day2.ipynb` đã thay bản cũ bằng bản mới ưu tiên tốc độ.
+Nếu không dùng Drive, đặt SAVE_TO_DRIVE=False; /content mất khi runtime bị xoá.
+Nếu bắt đầu nghiên cứu với code/cấu hình mới, đổi SESSION để tránh trộn kết quả.
 
-Xem [`requirements.txt`](requirements.txt). Colab đã có `torch`/`torchvision`; notebook cài thêm
-`timm`, `openpyxl`, `scikit-learn`. Phiên bản đã dùng khi phát triển:
+## Thí nghiệm và tăng tốc
 
-- Python 3.11, torch 2.x (CUDA), torchvision, timm ≥ 1.0, numpy, pandas, Pillow,
-  scikit-learn, matplotlib, openpyxl.
+- 5 backbone: ResNet18/50, ConvNeXt tiny, DeiT tiny, MobileNetV3 large.
+  Cùng fold 0, seed 0, 224 px, batch 64 và công thức nền.
+- 3 trục: fine-tune/frozen; basic/color; CE/label smoothing.
+  Thêm kết hợp color + label smoothing; full thêm scratch/CutMix/focal.
+- 4 cách suy luận ngoài mốc: hflip gộp xác suất/logit, temperature scaling,
+  ensemble 2 backbone. Ensemble chỉ báo val, chưa đo latency, không chọn tự động.
+  Triển khai tự động chọn 1-view/hflip trên val, rồi hiệu chuẩn T từng seed.
+- Chung kết F01 và mốc T00 cùng epoch, 3 seed 0/1/2. Test cuối cùng, toàn bộ tập.
+- AMP FP16 trên T4/BF16 khi hỗ trợ, channels-last, fused AdamW,
+  DataLoader prefetch/persistent workers; ảnh/checkpoint trên đĩa local.
+- TS00 dùng lại backbone thắng đúng cấu hình để tránh train nền khảo sát thêm.
+  Nếu công thức chung kết giống nền, dùng lại trọng số mốc cùng seed.
+- Drive lưu sau mỗi thí nghiệm. Chạy lại dùng lại thí nghiệm đã hoàn tất;
+  lần train đang dở phải bắt đầu lại, không resume optimizer giữa epoch.
+- Manifest bảo vệ test: dùng lại predictions đã xong; nếu ngắt giữa test,
+  dừng để kiểm tra manifest/file đã lưu, tránh tự đánh giá test lần nữa.
 
-## Cấu trúc bài nộp
+Không cam kết thời gian/điểm model khi chưa chạy Colab GPU. Khảo sát 3 epoch
+có thể xếp hạng khác train lâu. Ablation so với TS00 cùng ngân sách;
+T00 là mốc chung kết cùng ngân sách F01.
 
-```
-.
-├── SUBMISSION_README.md      # file này
-├── results.xlsx              # 7 sheet: Backbones/Training/Inference/Final/PerClass/Latency/Summary
-├── report.md                 # báo cáo kết luận (GUIDE.md mục 6.3)
-├── curves/                   # mỗi exp_id một ảnh (loss/metric theo epoch)
-├── predictions/              # <exp_id>_seed<k>_{test,val}.csv cho chung kết (F01) và mốc (T00)
-├── logs/                     # config/summary/history của mọi lần chạy (truy vết exp_id)
-├── code/                     # toàn bộ code (bộ khung starter/ đã hoàn thiện)
-│   ├── lab_day2.ipynb        # notebook Colab chạy end-to-end
-│   ├── dataset.py model.py losses.py train.py inference.py benchmark.py study.py
-│   ├── self_test.py          # kiểm tra pipeline (loss ban đầu, overfit 1 batch, focal γ=0, CutMix, gộp BN, temperature)
-│   ├── backbone_meta.py      # #params, GMAC, tag trọng số
-│   ├── make_results.py       # sinh results.xlsx
-│   ├── make_report.py        # sinh report.md
-│   └── build_notebook.py     # sinh lại notebook
-├── eval.py                   # công cụ chấm của lớp — KHÔNG sửa
-├── tests/                    # test của repo
-└── requirements.txt
-```
+## Sản phẩm và tái lập
 
-`eval.py`, `GUIDE.md`, `README.md`, `RUBRIC.md`, `starter/`, `tests/` là file gốc của lớp, giữ nguyên.
+ZIP có results.xlsx (7 sheet), report.md, curves/, predictions/, logs/, eval_out/,
+selection.json, environment.json, code/ và eval.py nguyên bản.
+Không chứa dataset/checkpoint. Không đưa dataset/checkpoint vào Git.
+GMAC đếm Conv2d + Linear, xét grouped conv/số token, chưa tính attention matmul.
+Latency model: batch 1, warmup 10, 50 lần, synchronize, cùng AMP dtype suy luận;
+chưa gồm decode/resize/hiệu chuẩn; latency ensemble chưa đo.
 
-## Lệnh chạy tay (không dùng notebook)
+Checkpoint chọn bằng macro-F1 val. Nhiệt độ T khớp val từng seed.
+Dự đoán có/không T dùng cùng logits, không chạy model trên test thêm.
+Workbook/báo cáo chỉ sinh sau chạy thật; chưa có số liệu là chưa xong thực nghiệm.
+
+Môi trường: Python 3, PyTorch 2.x/CUDA và torchvision Colab có sẵn,
+timm>=1.0,<1.1, numpy, pandas, Pillow, scikit-learn, matplotlib, openpyxl.
+Version/GPU/dtype/hash snapshot thực tế lưu trong environment.json.
+
+Sinh lại notebook sau khi sửa code:
 
 ```bash
-# 1) kiểm tra pipeline
-python code/self_test.py
-
-# 2) train một cấu hình
-python code/train.py --set exp_id=T00 backbone=resnet50 seed=0 epochs=10
-
-# 3) suy luận (Bước 3)
-python code/study.py --study T00 --seed 0
-
-# 4) chung kết: train 3 seed với save_test_predictions=True, rồi
-python code/study.py --finalize F01 --seeds 0 1 2 --method hflip
-
-# 5) sản phẩm
-python code/make_results.py --labels-dir data/labels --out results.xlsx
-python code/make_report.py  --labels-dir data/labels
-
-# 6) chấm
-python eval.py score --pred "predictions/F01_seed*_test.csv" \
-    --test-csv data/labels/test_subset0.csv --labels data/labels/labels.csv --tag F01 --out eval_out
-python eval.py grade --final "predictions/F01_seed*_test.csv" \
-    --baseline "predictions/T00_seed*_test.csv" \
-    --uncal "predictions/F01uncal_seed*_test.csv" --final-val "predictions/F01_seed*_val.csv" \
-    --test-csv data/labels/test_subset0.csv --val-csv data/labels/val_subset0.csv \
-    --labels data/labels/labels.csv --out eval_out
+python code/build_notebook.py
 ```
 
-## Seed
+Kiểm tra offline:
 
-Vòng chung kết dùng `seed ∈ {0, 1, 2}` (≥ 3 seed). Seed chỉ đổi khởi tạo head, thứ tự batch và
-augmentation; **không** đổi cách chia dữ liệu (S5). Dùng đúng fold 0 chia sẵn (S1).
+```bash
+python -m unittest discover -s tests
+python code/verify_colab_fast.py
+```
 
-## Quy tắc đã tuân thủ
+Kiểm tra mới dùng ảnh giả trên CPU: train/checkpoint, calibration,
+CSV chuẩn eval.py, frozen BN, dùng lại lần chạy và không lặp test.
+Chưa thay thế đo hiệu năng/chất lượng trên DeepWeeds thật và Colab GPU.
 
-- Chọn mọi thứ (backbone, siêu tham số, phương pháp suy luận, nhiệt độ T) trên **val**.
-- **Test chạy đúng một lần mỗi seed** ở Bước 4; không dùng thông tin test để quyết định.
-- Không gộp val vào train, không huấn luyện trên test.
-- Mọi số liệu trong `results.xlsx`/`report.md` sinh từ log chạy thật và khớp `eval.py`.
+Xem tiến độ ban đầu trong [LAB_STATUS.md](LAB_STATUS.md).
+README/GUIDE/RUBRIC, eval.py và starter/tests gốc của lớp được giữ nguyên.

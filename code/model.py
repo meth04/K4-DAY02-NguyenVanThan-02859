@@ -36,7 +36,7 @@ def build_model(name: str, pretrained: bool = True, num_classes: int = 9,
       - "finetune" : pretrained=True, train toàn bộ
     """
     init = (init or "finetune").lower()
-    use_pretrained = init in ("frozen", "finetune")
+    use_pretrained = bool(pretrained) and init in ("frozen", "finetune")
     model = timm.create_model(name, pretrained=use_pretrained, num_classes=num_classes,
                               drop_rate=drop_rate)
     if init == "frozen":
@@ -104,7 +104,7 @@ def count_gmacs(model, img_size: int = 224) -> float:
     in*out (linear). Số có thể lệch vài phần trăm so với fvcore/ptflops.
     """
     model = model.eval()
-    was_training = next(model.parameters()).device
+    original_device = next(model.parameters()).device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = model.to(device)
 
@@ -113,10 +113,10 @@ def count_gmacs(model, img_size: int = 224) -> float:
     def conv_hook(module, inp, out):
         o = out[0]
         k = module.kernel_size[0] * module.kernel_size[1]
-        total["mac"] += k * module.in_channels * module.out_channels * o.shape[-1] * o.shape[-2]
+        total["mac"] += k * (module.in_channels // module.groups) * module.out_channels * o.shape[-1] * o.shape[-2]
 
     def linear_hook(module, inp, out):
-        total["mac"] += module.in_features * module.out_features
+        total["mac"] += out.numel() * module.in_features
 
     handles = []
     for m in model.modules():
@@ -130,6 +130,7 @@ def count_gmacs(model, img_size: int = 224) -> float:
     finally:
         for h in handles:
             h.remove()
+        model.to(original_device)
     return total["mac"] / 1e9
 
 

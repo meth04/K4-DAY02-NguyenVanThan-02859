@@ -12,6 +12,7 @@ Giao diện giữ nguyên:
 from __future__ import annotations
 
 from pathlib import Path
+import random
 
 import numpy as np
 import pandas as pd
@@ -168,6 +169,8 @@ class DeepWeedsDataset(Dataset):
         self.df = df.reset_index(drop=True)
         self.images_dir = Path(images_dir)
         self.transform = transform
+        self.filenames = self.df["Filename"].tolist()
+        self.labels = self.df["Label"].astype(int).tolist()
         self.preload = preload
         self._cache = None
         if preload:
@@ -178,16 +181,22 @@ class DeepWeedsDataset(Dataset):
         return len(self.df)
 
     def __getitem__(self, i: int):
-        row = self.df.iloc[i]
-        filename = row["Filename"]
-        label = int(row["Label"])
+        filename = self.filenames[i]
+        label = self.labels[i]
         if self._cache is not None:
             img = self._cache[i]
         else:
-            img = Image.open(self.images_dir / filename).convert("RGB")
+            with Image.open(self.images_dir / filename) as source:
+                img = source.convert("RGB")
         if self.transform is not None:
             img = self.transform(img)
         return img, label, filename
+
+
+def _seed_worker(worker_id):
+    seed = torch.initial_seed() % (2 ** 32)
+    np.random.seed(seed)
+    random.seed(seed)
 
 
 def make_loader(df: pd.DataFrame, images_dir: str | Path, transform, batch_size: int,
@@ -215,13 +224,13 @@ def make_loader(df: pd.DataFrame, images_dir: str | Path, transform, batch_size:
         samp = None
         shuffle = bool(train)
 
-    def _worker_init(worker_id):
-        s = seed + worker_id
-        np.random.seed(s)
-        torch.manual_seed(s)
+    generator = torch.Generator().manual_seed(seed)
+    worker_options = ({"persistent_workers": True, "prefetch_factor": 2}
+                      if num_workers > 0 else {})
 
     return DataLoader(
         ds, batch_size=batch_size, shuffle=shuffle, sampler=samp,
-        num_workers=num_workers, pin_memory=True, drop_last=drop_last,
-        worker_init_fn=_worker_init if num_workers > 0 else None,
+        num_workers=num_workers, pin_memory=torch.cuda.is_available(), drop_last=drop_last,
+        worker_init_fn=_seed_worker if num_workers > 0 else None,
+        generator=generator, **worker_options,
     )

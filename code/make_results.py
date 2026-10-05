@@ -34,6 +34,7 @@ AXIS_OF = {
     "T09": "C. loss (ce_weighted)", "T10": "D. sampler (balanced)",
     "T11": "E. optimizer/LR", "T12": "F. EMA", "T13": "G. độ phân giải",
     "T14": "kết hợp tốt nhất",
+    "TS00": "nền khảo sát (cùng ngân sách ablation)",
 }
 
 
@@ -122,15 +123,18 @@ def main():
     for r in summaries:
         if not str(r["exp_id"]).startswith("T"):
             continue
-        delta = "" if t00 is None else round(r["val_macro_f1"] - t00["val_macro_f1"], 4)
+        reference_id = r.get("comparison_baseline", "T00")
+        reference = next((s for s in summaries if s["exp_id"] == reference_id and s["seed"] == 0), t00)
+        delta = "" if reference is None else round(r["val_macro_f1"] - reference["val_macro_f1"], 4)
         t_rows.append({
             "exp_id": r["exp_id"], "backbone": r["backbone"],
             "trục thay đổi": AXIS_OF.get(r["exp_id"], "?"),
             "khác T00 ở": f"init={r['init']} aug={r['aug']} loss={r['loss']} mix={r['mix']} "
                           f"sampler={r.get('cfg_sampler')} ema={r.get('cfg_ema_decay')}",
             "seed": r["seed"], "macro-F1 val": round(r["val_macro_f1"], 4),
-            "top-1 val": round(r["val_top1"], 4), "Δ so với T00": delta,
-            "ghi chú": "",
+            "top-1 val": round(r["val_top1"], 4), "mốc so sánh": reference_id, "Δ so với mốc": delta,
+            "epoch tối đa": r["epochs"], "epoch đã chạy": r.get("epochs_run", r["epochs"]),
+            "ghi chú": r.get("provenance", ""),
         })
     training = pd.DataFrame(t_rows)
 

@@ -69,12 +69,13 @@ def latency_report(model, batch_size: int, img_size: int, dtype: str = "fp32",
     if dtype == "fp16":
         x = x.half()
 
-    use_amp = dtype == "amp"
+    use_amp = dtype in ("amp", "amp_bf16")
 
     def fn():
         with torch.inference_mode():
             if use_amp:
-                with autocast(device_type=dev.type, enabled=(dev.type == "cuda")):
+                with autocast(device_type=dev.type, enabled=(dev.type == "cuda"),
+                              dtype=torch.bfloat16 if dtype == "amp_bf16" else torch.float16):
                     model(x)
             else:
                 model(x)
@@ -107,12 +108,13 @@ def tta_latency(model, k_views: int, batch_size: int = 1, img_size: int = 224,
     x = torch.randn(batch_size, 3, img_size, img_size, device=dev)
     if dtype == "fp16":
         x = x.half()
-    use_amp = dtype == "amp"
+    use_amp = dtype in ("amp", "amp_bf16")
 
     def one():
         with torch.inference_mode():
             if use_amp:
-                with autocast(device_type=dev.type, enabled=(dev.type == "cuda")):
+                with autocast(device_type=dev.type, enabled=(dev.type == "cuda"),
+                              dtype=torch.bfloat16 if dtype == "amp_bf16" else torch.float16):
                     model(x)
             else:
                 model(x)
