@@ -1,0 +1,17 @@
+{
+  "settings": {
+    "batch_size": 64,
+    "amp": false,
+    "channels_last": false,
+    "num_workers": 2,
+    "cudnn_benchmark": false,
+    "amp_dtype": "float16"
+  },
+  "target_minutes": 60,
+  "final_epochs": 12,
+  "elapsed_before_final_s": 614.305429400003,
+  "expected_final_runs": 3,
+  "measured_epoch_s": 54.44964528083801,
+  "measured_recipe_epoch_s": 54.44964528083801,
+  "estimated_all_seeds_epoch_s": 163.34893584251404
+}

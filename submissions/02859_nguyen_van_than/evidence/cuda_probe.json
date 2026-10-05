@@ -1,0 +1,170 @@
+[
+  {
+    "batch_size": 64,
+    "amp": false,
+    "channels_last": true,
+    "valid": true,
+    "models": [
+      {
+        "backbone": "resnet18",
+        "step_s": 0.6715084000024945,
+        "peak_mb": 622.373046875
+      },
+      {
+        "backbone": "resnet34",
+        "step_s": 1.0097045000002254,
+        "peak_mb": 946.01953125
+      },
+      {
+        "backbone": "convnext_atto",
+        "step_s": 0.32126299999072216,
+        "peak_mb": 696.23828125
+      },
+      {
+        "backbone": "deit_tiny_patch16_224",
+        "step_s": 0.14294000001973473,
+        "peak_mb": 699.72265625
+      },
+      {
+        "backbone": "mobilenetv3_large_100",
+        "step_s": 1.0871345000050496,
+        "peak_mb": 969.3115234375
+      }
+    ]
+  },
+  {
+    "batch_size": 64,
+    "amp": true,
+    "channels_last": true,
+    "valid": false,
+    "models": [
+      {
+        "backbone": "resnet18",
+        "step_s": 0.898676400014665,
+        "peak_mb": 434.78125
+      },
+      {
+        "backbone": "resnet34",
+        "step_s": 1.5430626000161283,
+        "peak_mb": 680.94287109375
+      }
+    ]
+  },
+  {
+    "batch_size": 32,
+    "amp": true,
+    "channels_last": true,
+    "valid": true,
+    "models": [
+      {
+        "backbone": "resnet18",
+        "step_s": 0.44420669999090023,
+        "peak_mb": 316.40625
+      },
+      {
+        "backbone": "resnet34",
+        "step_s": 0.7749715000099968,
+        "peak_mb": 505.318359375
+      },
+      {
+        "backbone": "convnext_atto",
+        "step_s": 0.16631160001270473,
+        "peak_mb": 263.25
+      },
+      {
+        "backbone": "deit_tiny_patch16_224",
+        "step_s": 0.2742842999869026,
+        "peak_mb": 276.5556640625
+      },
+      {
+        "backbone": "mobilenetv3_large_100",
+        "step_s": 0.4140878999896813,
+        "peak_mb": 307.77099609375
+      }
+    ]
+  },
+  {
+    "batch_size": 64,
+    "amp": false,
+    "channels_last": false,
+    "valid": true,
+    "models": [
+      {
+        "backbone": "resnet18",
+        "step_s": 0.10527070000534877,
+        "peak_mb": 658.22998046875
+      },
+      {
+        "backbone": "resnet34",
+        "step_s": 0.17475289999856614,
+        "peak_mb": 984.50146484375
+      },
+      {
+        "backbone": "convnext_atto",
+        "step_s": 0.3230274000088684,
+        "peak_mb": 696.73828125
+      },
+      {
+        "backbone": "deit_tiny_patch16_224",
+        "step_s": 0.14139089998207055,
+        "peak_mb": 699.72265625
+      },
+      {
+        "backbone": "mobilenetv3_large_100",
+        "step_s": 0.0990843000181485,
+        "peak_mb": 993.4755859375
+      }
+    ]
+  },
+  {
+    "batch_size": 64,
+    "amp": true,
+    "channels_last": false,
+    "valid": false,
+    "models": [
+      {
+        "backbone": "resnet18",
+        "step_s": 0.4902213000168558,
+        "peak_mb": 437.03125
+      },
+      {
+        "backbone": "resnet34",
+        "step_s": 0.9649684999894816,
+        "peak_mb": 679.193359375
+      }
+    ]
+  },
+  {
+    "batch_size": 32,
+    "amp": true,
+    "channels_last": false,
+    "valid": true,
+    "models": [
+      {
+        "backbone": "resnet18",
+        "step_s": 0.2570054999960121,
+        "peak_mb": 325.03076171875
+      },
+      {
+        "backbone": "resnet34",
+        "step_s": 0.502533199993195,
+        "peak_mb": 517.06787109375
+      },
+      {
+        "backbone": "convnext_atto",
+        "step_s": 0.16785990001517348,
+        "peak_mb": 264.8125
+      },
+      {
+        "backbone": "deit_tiny_patch16_224",
+        "step_s": 0.2758075000019744,
+        "peak_mb": 275.5048828125
+      },
+      {
+        "backbone": "mobilenetv3_large_100",
+        "step_s": 0.10545780000393279,
+        "peak_mb": 308.2783203125
+      }
+    ]
+  }
+]

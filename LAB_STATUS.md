@@ -30,8 +30,8 @@ Nguồn: [README.md](README.md), [GUIDE.md](GUIDE.md), [RUBRIC.md](RUBRIC.md).
   tải code từ GitHub theo commit cố định, tải dữ liệu, chạy kế hoạch ưu tiên tốc độ và sinh sản phẩm.
 
 **Trạng thái cập nhật:** đã chạy xong thực nghiệm GPU local với profile `hour`.
-Sản phẩm ở `local_runs/hour/`; xem chi tiết bên dưới. Báo cáo vẫn là bản nháp cần
-đọc và bổ sung phân tích trước khi nộp.
+Sản phẩm train gốc ở `local_runs/hour/`; bài nộp đã hoàn thiện báo cáo và minh chứng trong
+[`submissions/02859_nguyen_van_than/`](submissions/02859_nguyen_van_than/README.md).
 
 ## Kết quả local đã chạy thật (2026-10-05)
 
@@ -56,12 +56,28 @@ Sản phẩm ở `local_runs/hour/`; xem chi tiết bên dưới. Báo cáo vẫ
 
 Sản phẩm: [ZIP](local_runs/hour/deepweeds_submission.zip),
 [workbook](local_runs/hour/results.xlsx), [báo cáo nháp](local_runs/hour/report.md),
-[log](local_runs/hour/training.log). File kết quả lớn và trọng số được giữ local,
-không đưa vào Git. Code/nhật ký môi trường có trong ZIP.
+[log](local_runs/hour/training.log). Đây là các sản phẩm tự sinh ban đầu.
+Bản hoàn thiện của workbook, báo cáo, curves, predictions và log nhỏ được đưa vào thư mục
+bài nộp để commit; dataset ảnh và checkpoint tiếp tục giữ local.
 
-## Tiếp theo
+## Hoàn thiện bài nộp và minh chứng bổ sung
 
-Đọc báo cáo nháp, phân tích ảnh sai và Δ so với nhiễu trước khi nộp.
-Chạy lại local: `.venv-gpu/Scripts/python.exe -X utf8 -u code/run_local.py --minutes 60`;
-dùng lại các lần train/test đã hoàn tất. Trên Colab có thể chọn `hour`, `fast` hoặc `full`,
-nhưng thời gian đã đo ở trên chỉ áp dụng cho máy local và cấu hình đã ghi.
+- Báo cáo không còn TODO; phân tích backbone/ablation/TTA, Δ so với std, confusion,
+  ảnh sai và giới hạn; có bảng đối chiếu từng mục rubric.
+- Workbook 8 sheet (7 bắt buộc + Robustness), Final đủ 6 dòng từng seed + 2 mean±std;
+  PerClass thêm std, training thêm F1 hai lớp khó; định dạng/freeze/filter/đơn vị.
+- Đo lại đủ 5 phương pháp suy luận và F01: 20 warmup/100 lượt, synchronize,
+  GPU forward + gộp + softmax. F01 p95 **26,68 ms** trên GTX1650;
+  phép đo forward-only gốc 19,67 ms được giữ riêng, không tính decode/resize/H2D.
+- Giữ byte-identical mọi CSV dự đoán gốc (đối chiếu archive trước khi bổ sung), không train/test lại.
+- Bonus trên toàn bộ 3.501 ảnh validation, seed0: F1 sạch **0,9182**, tối **0,8167**,
+  mờ **0,6101**, nhiễu **0,8763**; temperature cố định từ validation sạch, có ECE trước/sau.
+- Grad-CAM 6 lỗi validation, hook trước attention cuối; không dùng test để chọn mẫu/đổi model.
+- `eval.py` gốc tự chấm **10/20 riêng mục I**; điểm A–H và hai phần bonus do giảng viên xác nhận.
+
+Bài nộp: [README](submissions/02859_nguyen_van_than/README.md),
+[báo cáo](submissions/02859_nguyen_van_than/report.md),
+[workbook](submissions/02859_nguyen_van_than/results.xlsx),
+[rubric evidence](submissions/02859_nguyen_van_than/RUBRIC_EVIDENCE.md).
+ZIP hoàn thiện local: `local_runs/hour/deepweeds_submission_final.zip`.
+Kiểm tra offline: `python code/verify_submission.py`; tái lập theo README bài nộp.

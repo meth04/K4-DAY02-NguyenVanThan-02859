@@ -1,0 +1,21 @@
+{
+  "exp_id": "B03",
+  "seed": 0,
+  "backbone": "convnext_atto",
+  "init": "finetune",
+  "loss": "ce",
+  "aug": "basic",
+  "mix": null,
+  "epochs": 1,
+  "best_epoch": 1,
+  "epochs_run": 1,
+  "params_m": 3.377409,
+  "val_macro_f1": 0.7127733122426643,
+  "val_top1": 0.7969151670951157,
+  "val_balanced_acc": 0.6973031274210998,
+  "val_ece": 0.040884511559665354,
+  "train_time_per_epoch_s": 82.85011148452759,
+  "weight_tag": "d2_in1k",
+  "comparison_baseline": "TS00",
+  "wall_time_s": 91.13359569999739
+}

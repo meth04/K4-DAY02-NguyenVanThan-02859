@@ -1,0 +1,7 @@
+{
+  "method": "hflip_logit",
+  "calibrate": true,
+  "status": "complete",
+  "temperature": 1.3102842091109161,
+  "n_test": 3507
+}

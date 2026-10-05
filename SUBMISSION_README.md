@@ -2,6 +2,18 @@
 
 Lab Day 2: so sánh backbone, công thức huấn luyện và suy luận trên DeepWeeds.
 
+## Bài nộp hoàn thiện
+
+[Bài nộp Nguyễn Văn Thân — 02859](submissions/02859_nguyen_van_than/README.md)
+có workbook, báo cáo đã phân tích, curves, dự đoán từng seed, config/log và metadata fold gốc.
+Đã thêm đo độ trễ đầy đủ các phương pháp, Grad-CAM và đánh giá tối/mờ/nhiễu trên validation.
+Dataset ảnh và checkpoint giữ local theo yêu cầu lớp; các minh chứng nhỏ được commit.
+
+Kiểm tra offline: `python code/verify_submission.py` (numpy, pandas, openpyxl).
+`eval.py` gốc tính lại phần I: 10/20; A–H và điểm thưởng do giảng viên chấm.
+Báo cáo mới ở `submissions/02859_nguyen_van_than/report.md`; bản trong `local_runs/hour/report.md`
+là bản nháp tự sinh ban đầu. Gói hoàn thiện local: `local_runs/hour/deepweeds_submission_final.zip`.
+
 ## Chạy trên Colab
 
 Dùng **[code/lab_day2.ipynb](code/lab_day2.ipynb)**.
@@ -132,5 +144,5 @@ Các lượt train kiểm tra dùng CPU, trọng số ngẫu nhiên, 18/9/9 ản
 trong thư mục tạm; không thay đổi dữ liệu gốc. Chưa thay thế đo hiệu năng/chất lượng,
 AMP trên Colab GPU, tải trọng số pretrained và giao diện Drive.
 
-Xem tiến độ ban đầu trong [LAB_STATUS.md](LAB_STATUS.md).
+Xem tiến độ và sản phẩm hiện tại trong [LAB_STATUS.md](LAB_STATUS.md).
 README/GUIDE/RUBRIC, eval.py và starter/tests gốc của lớp được giữ nguyên.

@@ -1,0 +1,21 @@
+{
+  "exp_id": "F01",
+  "seed": 2,
+  "backbone": "deit_tiny_patch16_224",
+  "init": "finetune",
+  "loss": "ce",
+  "aug": "basic",
+  "mix": null,
+  "epochs": 12,
+  "best_epoch": 10,
+  "epochs_run": 12,
+  "params_m": 5.500809,
+  "val_macro_f1": 0.9106341612922925,
+  "val_top1": 0.9343044844330192,
+  "val_balanced_acc": 0.9028352836883735,
+  "val_ece": 0.02388585269263863,
+  "train_time_per_epoch_s": 32.215957383314766,
+  "weight_tag": "fb_in1k",
+  "comparison_baseline": "TS00",
+  "wall_time_s": 395.2669106000103
+}

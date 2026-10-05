@@ -1,0 +1,21 @@
+{
+  "exp_id": "B01",
+  "seed": 0,
+  "backbone": "resnet18",
+  "init": "finetune",
+  "loss": "ce",
+  "aug": "basic",
+  "mix": null,
+  "epochs": 1,
+  "best_epoch": 1,
+  "epochs_run": 1,
+  "params_m": 11.181129,
+  "val_macro_f1": 0.11581750399557016,
+  "val_top1": 0.5284204512996287,
+  "val_balanced_acc": 0.1318709566959816,
+  "val_ece": 0.04299587671057356,
+  "train_time_per_epoch_s": 89.07767367362976,
+  "weight_tag": "a1_in1k",
+  "comparison_baseline": "TS00",
+  "wall_time_s": 96.3910311999789
+}

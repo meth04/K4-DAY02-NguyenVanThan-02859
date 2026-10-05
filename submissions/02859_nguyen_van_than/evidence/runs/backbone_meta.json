@@ -1,0 +1,32 @@
+{
+  "resnet18": {
+    "params_m": 11.181129,
+    "gmac": 0.592187904,
+    "weight_tag": "a1_in1k",
+    "gmac_method": "Conv2d + Linear; excludes attention matmuls (lower bound)"
+  },
+  "resnet34": {
+    "params_m": 21.289289,
+    "gmac": 1.19616768,
+    "weight_tag": "a1_in1k",
+    "gmac_method": "Conv2d + Linear; excludes attention matmuls (lower bound)"
+  },
+  "convnext_atto": {
+    "params_m": 3.377409,
+    "gmac": 0.1786192,
+    "weight_tag": "d2_in1k",
+    "gmac_method": "Conv2d + Linear; excludes attention matmuls (lower bound)"
+  },
+  "deit_tiny_patch16_224": {
+    "params_m": 5.500809,
+    "gmac": 0.354485952,
+    "weight_tag": "fb_in1k",
+    "gmac_method": "Conv2d + Linear; excludes attention matmuls (lower bound)"
+  },
+  "mobilenetv3_large_100": {
+    "params_m": 4.213561,
+    "gmac": 0.07215936,
+    "weight_tag": "ra_in1k",
+    "gmac_method": "Conv2d + Linear; excludes attention matmuls (lower bound)"
+  }
+}

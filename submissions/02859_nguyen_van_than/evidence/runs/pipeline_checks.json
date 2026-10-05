@@ -1,0 +1,13 @@
+{
+  "initial_loss": 2.11035418510437,
+  "overfit_loss": 0.013065019622445107,
+  "steps": 16,
+  "checks": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+  ]
+}

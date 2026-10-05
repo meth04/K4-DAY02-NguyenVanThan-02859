@@ -1,0 +1,22 @@
+{
+  "exp_id": "T00",
+  "seed": 0,
+  "backbone": "deit_tiny_patch16_224",
+  "init": "finetune",
+  "loss": "ce",
+  "aug": "basic",
+  "mix": null,
+  "epochs": 12,
+  "best_epoch": 11,
+  "epochs_run": 12,
+  "params_m": 5.500809,
+  "val_macro_f1": 0.9081025605864291,
+  "val_top1": 0.9337332190802627,
+  "val_balanced_acc": 0.9057263430427691,
+  "val_ece": 0.024262930539225715,
+  "train_time_per_epoch_s": 30.881672143936157,
+  "weight_tag": "fb_in1k",
+  "comparison_baseline": "T00",
+  "wall_time_s": 378.97335129999556,
+  "provenance": "Dùng lại F01/seed0; cấu hình huấn luyện giống hệt"
+}

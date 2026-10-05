@@ -1,0 +1,4 @@
+# Preserve submission artifact bytes so SHA-256 checks work on every OS.
+submissions/02859_nguyen_van_than/** -text whitespace=cr-at-eol,-blank-at-eof
+# Raw console tables retain their original column padding.
+submissions/02859_nguyen_van_than/evidence/training.log whitespace=cr-at-eol,-blank-at-eof,-blank-at-eol

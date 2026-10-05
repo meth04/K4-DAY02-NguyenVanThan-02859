@@ -1,0 +1,56 @@
+[
+  {
+    "Filename": "20170410-153511-0.jpg",
+    "true": 0,
+    "single_view_pred": 3,
+    "saved_tta_pred": 3,
+    "target": "single-view predicted class",
+    "gradient_l1": 42.77653121948242,
+    "cam_max": 1.0
+  },
+  {
+    "Filename": "20170718-100650-2.jpg",
+    "true": 0,
+    "single_view_pred": 5,
+    "saved_tta_pred": 5,
+    "target": "single-view predicted class",
+    "gradient_l1": 33.30698776245117,
+    "cam_max": 1.0
+  },
+  {
+    "Filename": "20170718-101130-2.jpg",
+    "true": 0,
+    "single_view_pred": 8,
+    "saved_tta_pred": 8,
+    "target": "single-view predicted class",
+    "gradient_l1": 21.385229110717773,
+    "cam_max": 1.0
+  },
+  {
+    "Filename": "20170711-114614-0.jpg",
+    "true": 7,
+    "single_view_pred": 0,
+    "saved_tta_pred": 0,
+    "target": "single-view predicted class",
+    "gradient_l1": 27.496925354003906,
+    "cam_max": 1.0
+  },
+  {
+    "Filename": "20170304-132134-0.jpg",
+    "true": 7,
+    "single_view_pred": 0,
+    "saved_tta_pred": 0,
+    "target": "single-view predicted class",
+    "gradient_l1": 19.763362884521484,
+    "cam_max": 1.0
+  },
+  {
+    "Filename": "20170718-132824-2.jpg",
+    "true": 7,
+    "single_view_pred": 0,
+    "saved_tta_pred": 0,
+    "target": "single-view predicted class",
+    "gradient_l1": 22.93461799621582,
+    "cam_max": 1.0
+  }
+]

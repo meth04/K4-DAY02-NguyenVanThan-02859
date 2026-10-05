@@ -1,0 +1,15 @@
+{
+  "checkpoint": "F01/seed0/best.pt",
+  "split": "val only",
+  "n": 3501,
+  "seed": 0,
+  "method": "hflip_logit",
+  "temperature_source": "original clean validation fit",
+  "brightness_factor": 0.55,
+  "blur_radius_native_px": 1.5,
+  "noise_std_native_8bit": 20,
+  "noise_seed": "20261005 + row index",
+  "adaptation": false,
+  "model_selection": false,
+  "checkpoint_sha256": "6aa93454b9714131f958421658064e9759bf3afe54e79113ecef1d8cf70d4b9a"
+}

@@ -1,0 +1,416 @@
+CUDA probe: resnet18, batch=32, amp=False, channels_last=True: 0.318s/step, 405 MB
+CUDA probe: resnet34, batch=32, amp=False, channels_last=True: 0.484s/step, 636 MB
+CUDA probe: convnext_atto, batch=32, amp=False, channels_last=True: 0.140s/step, 379 MB
+CUDA probe: deit_tiny_patch16_224, batch=32, amp=False, channels_last=True: 0.074s/step, 394 MB
+CUDA probe: mobilenetv3_large_100, batch=32, amp=False, channels_last=True: 0.481s/step, 526 MB
+CUDA probe: resnet18, batch=32, amp=True, channels_last=True: 0.444s/step, 316 MB
+CUDA probe: resnet34, batch=32, amp=True, channels_last=True: 0.774s/step, 505 MB
+CUDA probe: convnext_atto, batch=32, amp=True, channels_last=True: 0.166s/step, 265 MB
+CUDA probe: deit_tiny_patch16_224, batch=32, amp=True, channels_last=True: 0.274s/step, 277 MB
+CUDA probe: mobilenetv3_large_100, batch=32, amp=True, channels_last=True: 0.414s/step, 309 MB
+CUDA probe: resnet18, batch=32, amp=False, channels_last=False: 0.065s/step, 435 MB
+CUDA probe: resnet34, batch=32, amp=False, channels_last=False: 0.106s/step, 669 MB
+CUDA probe: convnext_atto, batch=32, amp=False, channels_last=False: 0.142s/step, 378 MB
+CUDA probe: deit_tiny_patch16_224, batch=32, amp=False, channels_last=False: 0.073s/step, 394 MB
+CUDA probe: mobilenetv3_large_100, batch=32, amp=False, channels_last=False: 0.054s/step, 538 MB
+Selected common GPU settings: {'batch_size': 32, 'amp': False, 'channels_last': False, 'num_workers': 2, 'cudnn_benchmark': False, 'amp_dtype': 'float16'}
+CUDA probe: resnet18, batch=64, amp=False, channels_last=True: 0.672s/step, 622 MB
+CUDA probe: resnet34, batch=64, amp=False, channels_last=True: 1.010s/step, 946 MB
+CUDA probe: convnext_atto, batch=64, amp=False, channels_last=True: 0.321s/step, 696 MB
+CUDA probe: deit_tiny_patch16_224, batch=64, amp=False, channels_last=True: 0.143s/step, 700 MB
+CUDA probe: mobilenetv3_large_100, batch=64, amp=False, channels_last=True: 1.087s/step, 969 MB
+CUDA probe: resnet18, batch=64, amp=True, channels_last=True: 0.899s/step, 435 MB
+CUDA probe: resnet34, batch=64, amp=True, channels_last=True: 1.543s/step, 681 MB
+CUDA probe rejected: convnext_atto: Nonfinite loss during CUDA preflight
+CUDA probe: resnet18, batch=32, amp=True, channels_last=True: 0.444s/step, 316 MB
+CUDA probe: resnet34, batch=32, amp=True, channels_last=True: 0.775s/step, 505 MB
+CUDA probe: convnext_atto, batch=32, amp=True, channels_last=True: 0.166s/step, 263 MB
+CUDA probe: deit_tiny_patch16_224, batch=32, amp=True, channels_last=True: 0.274s/step, 277 MB
+CUDA probe: mobilenetv3_large_100, batch=32, amp=True, channels_last=True: 0.414s/step, 308 MB
+CUDA probe: resnet18, batch=64, amp=False, channels_last=False: 0.105s/step, 658 MB
+CUDA probe: resnet34, batch=64, amp=False, channels_last=False: 0.175s/step, 985 MB
+CUDA probe: convnext_atto, batch=64, amp=False, channels_last=False: 0.323s/step, 697 MB
+CUDA probe: deit_tiny_patch16_224, batch=64, amp=False, channels_last=False: 0.141s/step, 700 MB
+CUDA probe: mobilenetv3_large_100, batch=64, amp=False, channels_last=False: 0.099s/step, 993 MB
+CUDA probe: resnet18, batch=64, amp=True, channels_last=False: 0.490s/step, 437 MB
+CUDA probe: resnet34, batch=64, amp=True, channels_last=False: 0.965s/step, 679 MB
+CUDA probe rejected: convnext_atto: Nonfinite loss during CUDA preflight
+CUDA probe: resnet18, batch=32, amp=True, channels_last=False: 0.257s/step, 325 MB
+CUDA probe: resnet34, batch=32, amp=True, channels_last=False: 0.503s/step, 517 MB
+CUDA probe: convnext_atto, batch=32, amp=True, channels_last=False: 0.168s/step, 265 MB
+CUDA probe: deit_tiny_patch16_224, batch=32, amp=True, channels_last=False: 0.276s/step, 276 MB
+CUDA probe: mobilenetv3_large_100, batch=32, amp=True, channels_last=False: 0.105s/step, 308 MB
+Selected common GPU settings: {'batch_size': 64, 'amp': False, 'channels_last': False, 'num_workers': 2, 'cudnn_benchmark': False, 'amp_dtype': 'float16'}
+Selected common GPU settings: {'batch_size': 64, 'amp': False, 'channels_last': False, 'num_workers': 2, 'cudnn_benchmark': False, 'amp_dtype': 'float16'}
+STAGE: lab.prepare_data()
+========================================================================
+KIỂM TRA CHIA DỮ LIỆU (fold 0)
+========================================================================
+Số ảnh: train=10501 val=3501 test=3507 tổng=17509 (tỉ lệ 0.600/0.200/0.200)
+Giao các tập: {'train∩val': 0, 'train∩test': 0, 'val∩test': 0}
+Hợp ba tập: 17509 ảnh
+
+Số ảnh mỗi lớp (Label: train/val/test):
+  0   Chinee Apple:   675 /   225 /   226
+  1        Lantana:   637 /   213 /   213
+  2    Parkinsonia:   618 /   206 /   207
+  3     Parthenium:   613 /   204 /   205
+  4 Prickly Acacia:   637 /   212 /   213
+  5    Rubber Vine:   605 /   202 /   202
+  6      Siam Weed:   644 /   215 /   215
+  7     Snake Weed:   609 /   203 /   204
+  8      Negatives:  5463 /  1821 /  1822
+========================================================================
+Dữ liệu gốc có 1 nhãn khác giữa labels.csv và train_subset0.csv:
+split              Filename  fold_label  catalog_label
+train 20170714-110407-3.jpg           0              1
+Giữ nguyên nhãn CSV fold 0 theo yêu cầu lab; ghi chênh lệch vào split_check.json.
+              lớp  đếm thật  Table 1
+0    Chinee Apple      1125     1125
+1         Lantana      1064     1064
+2     Parkinsonia      1031     1031
+3      Parthenium      1022     1022
+4  Prickly Acacia      1062     1062
+5     Rubber Vine      1009     1009
+6       Siam Weed      1074     1074
+7      Snake Weed      1016     1016
+8       Negatives      9106     9106
+lab_day2.ipynb:10: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  "name": "python3",
+                train   val  test
+Chinee Apple      675   225   226
+Lantana           637   213   213
+Parkinsonia       618   206   207
+Parthenium        613   204   205
+Prickly Acacia    637   212   213
+Rubber Vine       605   202   202
+Siam Weed         644   215   215
+Snake Weed        609   203   204
+Negatives        5463  1821  1822
+lab_day2.ipynb:18: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  "cells": [
+Negative chiếm 52.0 % tổng ảnh.
+STAGE: checks =
+[PASS] focal gamma=0 == CE focal=2.61639360 ce=2.61639360
+[PASS] label smoothing eps=0 == CE ls=2.73039484 ce=2.73039484
+[PASS] CutMix lam/area lam=0.371, tỉ lệ pixel đổi~0.472
+[PASS] Mixup trộn nhãn lam=0.859
+fuse_conv_bn: đã gộp 1 cặp Conv+BN
+[PASS] fuse_conv_bn sai số <= 1e-5 max|Δ|=5.96e-07
+[PASS] temperature scaling giảm NLL/ECE T=0.050, ECE 0.3327 -> 0.0206
+lab_day2.ipynb:17: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  },
+Initial loss: 2.11035418510437 | ln(9): 2.1972245773362196
+Overfit 1 batch: 2.11035418510437 -> 0.013065019622445107 | steps: 16
+STAGE: backbone_table =
+========================================================================
+KIỂM TRA CHIA DỮ LIỆU (fold 0)
+========================================================================
+Số ảnh: train=10501 val=3501 test=3507 tổng=17509 (tỉ lệ 0.600/0.200/0.200)
+Giao các tập: {'train∩val': 0, 'train∩test': 0, 'val∩test': 0}
+Hợp ba tập: 17509 ảnh
+
+Số ảnh mỗi lớp (Label: train/val/test):
+  0   Chinee Apple:   675 /   225 /   226
+  1        Lantana:   637 /   213 /   213
+  2    Parkinsonia:   618 /   206 /   207
+  3     Parthenium:   613 /   204 /   205
+  4 Prickly Acacia:   637 /   212 /   213
+  5    Rubber Vine:   605 /   202 /   202
+  6      Siam Weed:   644 /   215 /   215
+  7     Snake Weed:   609 /   203 /   204
+  8      Negatives:  5463 /  1821 /  1822
+========================================================================
+[B01 s0] epoch  1/1 train_loss 1.4876 val_loss 1.3254 val_macroF1 0.1158 val_top1 0.5284 (89.1s)
+[B01 s0] XONG. val macro-F1=0.1158 (epoch 1)
+========================================================================
+KIỂM TRA CHIA DỮ LIỆU (fold 0)
+========================================================================
+Số ảnh: train=10501 val=3501 test=3507 tổng=17509 (tỉ lệ 0.600/0.200/0.200)
+Giao các tập: {'train∩val': 0, 'train∩test': 0, 'val∩test': 0}
+Hợp ba tập: 17509 ảnh
+
+Số ảnh mỗi lớp (Label: train/val/test):
+  0   Chinee Apple:   675 /   225 /   226
+  1        Lantana:   637 /   213 /   213
+  2    Parkinsonia:   618 /   206 /   207
+  3     Parthenium:   613 /   204 /   205
+  4 Prickly Acacia:   637 /   212 /   213
+  5    Rubber Vine:   605 /   202 /   202
+  6      Siam Weed:   644 /   215 /   215
+  7     Snake Weed:   609 /   203 /   204
+  8      Negatives:  5463 /  1821 /  1822
+========================================================================
+[B02 s0] epoch  1/1 train_loss 1.5369 val_loss 1.3923 val_macroF1 0.0929 val_top1 0.5247 (57.5s)
+[B02 s0] XONG. val macro-F1=0.0929 (epoch 1)
+========================================================================
+KIỂM TRA CHIA DỮ LIỆU (fold 0)
+========================================================================
+Số ảnh: train=10501 val=3501 test=3507 tổng=17509 (tỉ lệ 0.600/0.200/0.200)
+Giao các tập: {'train∩val': 0, 'train∩test': 0, 'val∩test': 0}
+Hợp ba tập: 17509 ảnh
+
+Số ảnh mỗi lớp (Label: train/val/test):
+  0   Chinee Apple:   675 /   225 /   226
+  1        Lantana:   637 /   213 /   213
+  2    Parkinsonia:   618 /   206 /   207
+  3     Parthenium:   613 /   204 /   205
+  4 Prickly Acacia:   637 /   212 /   213
+  5    Rubber Vine:   605 /   202 /   202
+  6      Siam Weed:   644 /   215 /   215
+  7     Snake Weed:   609 /   203 /   204
+  8      Negatives:  5463 /  1821 /  1822
+========================================================================
+[B03 s0] epoch  1/1 train_loss 0.8798 val_loss 0.5902 val_macroF1 0.7128 val_top1 0.7969 (82.9s)
+[B03 s0] XONG. val macro-F1=0.7128 (epoch 1)
+========================================================================
+KIỂM TRA CHIA DỮ LIỆU (fold 0)
+========================================================================
+Số ảnh: train=10501 val=3501 test=3507 tổng=17509 (tỉ lệ 0.600/0.200/0.200)
+Giao các tập: {'train∩val': 0, 'train∩test': 0, 'val∩test': 0}
+Hợp ba tập: 17509 ảnh
+
+Số ảnh mỗi lớp (Label: train/val/test):
+  0   Chinee Apple:   675 /   225 /   226
+  1        Lantana:   637 /   213 /   213
+  2    Parkinsonia:   618 /   206 /   207
+  3     Parthenium:   613 /   204 /   205
+  4 Prickly Acacia:   637 /   212 /   213
+  5    Rubber Vine:   605 /   202 /   202
+  6      Siam Weed:   644 /   215 /   215
+  7     Snake Weed:   609 /   203 /   204
+  8      Negatives:  5463 /  1821 /  1822
+========================================================================
+[B04 s0] epoch  1/1 train_loss 0.8793 val_loss 0.5693 val_macroF1 0.7289 val_top1 0.8066 (54.4s)
+[B04 s0] XONG. val macro-F1=0.7289 (epoch 1)
+========================================================================
+KIỂM TRA CHIA DỮ LIỆU (fold 0)
+========================================================================
+Số ảnh: train=10501 val=3501 test=3507 tổng=17509 (tỉ lệ 0.600/0.200/0.200)
+Giao các tập: {'train∩val': 0, 'train∩test': 0, 'val∩test': 0}
+Hợp ba tập: 17509 ảnh
+
+Số ảnh mỗi lớp (Label: train/val/test):
+  0   Chinee Apple:   675 /   225 /   226
+  1        Lantana:   637 /   213 /   213
+  2    Parkinsonia:   618 /   206 /   207
+  3     Parthenium:   613 /   204 /   205
+  4 Prickly Acacia:   637 /   212 /   213
+  5    Rubber Vine:   605 /   202 /   202
+  6      Siam Weed:   644 /   215 /   215
+  7     Snake Weed:   609 /   203 /   204
+  8      Negatives:  5463 /  1821 /  1822
+========================================================================
+[B05 s0] epoch  1/1 train_loss 1.9494 val_loss 1.3982 val_macroF1 0.4532 val_top1 0.6084 (46.9s)
+[B05 s0] XONG. val macro-F1=0.4532 (epoch 1)
+  exp_id               backbone  val_macro_f1  val_top1  train_time_per_epoch_s
+3    B04  deit_tiny_patch16_224      0.728905  0.806627               54.449645
+2    B03          convnext_atto      0.712773  0.796915               82.850111
+4    B05  mobilenetv3_large_100      0.453208  0.608398               46.946950
+0    B01               resnet18      0.115818  0.528420               89.077674
+1    B02               resnet34      0.092877  0.524707               57.485841
+Chọn trên val: deit_tiny_patch16_224
+Thời gian đã chạy (phút): 6.3
+STAGE: ablation_table =
+========================================================================
+KIỂM TRA CHIA DỮ LIỆU (fold 0)
+========================================================================
+Số ảnh: train=10501 val=3501 test=3507 tổng=17509 (tỉ lệ 0.600/0.200/0.200)
+Giao các tập: {'train∩val': 0, 'train∩test': 0, 'val∩test': 0}
+Hợp ba tập: 17509 ảnh
+
+Số ảnh mỗi lớp (Label: train/val/test):
+  0   Chinee Apple:   675 /   225 /   226
+  1        Lantana:   637 /   213 /   213
+  2    Parkinsonia:   618 /   206 /   207
+  3     Parthenium:   613 /   204 /   205
+  4 Prickly Acacia:   637 /   212 /   213
+  5    Rubber Vine:   605 /   202 /   202
+  6      Siam Weed:   644 /   215 /   215
+  7     Snake Weed:   609 /   203 /   204
+  8      Negatives:  5463 /  1821 /  1822
+========================================================================
+[T01 s0] epoch  1/1 train_loss 1.3714 val_loss 1.1996 val_macroF1 0.3343 val_top1 0.5813 (38.5s)
+[T01 s0] XONG. val macro-F1=0.3343 (epoch 1)
+========================================================================
+KIỂM TRA CHIA DỮ LIỆU (fold 0)
+========================================================================
+Số ảnh: train=10501 val=3501 test=3507 tổng=17509 (tỉ lệ 0.600/0.200/0.200)
+Giao các tập: {'train∩val': 0, 'train∩test': 0, 'val∩test': 0}
+Hợp ba tập: 17509 ảnh
+
+Số ảnh mỗi lớp (Label: train/val/test):
+  0   Chinee Apple:   675 /   225 /   226
+  1        Lantana:   637 /   213 /   213
+  2    Parkinsonia:   618 /   206 /   207
+  3     Parthenium:   613 /   204 /   205
+  4 Prickly Acacia:   637 /   212 /   213
+  5    Rubber Vine:   605 /   202 /   202
+  6      Siam Weed:   644 /   215 /   215
+  7     Snake Weed:   609 /   203 /   204
+  8      Negatives:  5463 /  1821 /  1822
+========================================================================
+[T03 s0] epoch  1/1 train_loss 1.0136 val_loss 0.6463 val_macroF1 0.6866 val_top1 0.7812 (54.7s)
+[T03 s0] XONG. val macro-F1=0.6866 (epoch 1)
+========================================================================
+KIỂM TRA CHIA DỮ LIỆU (fold 0)
+========================================================================
+Số ảnh: train=10501 val=3501 test=3507 tổng=17509 (tỉ lệ 0.600/0.200/0.200)
+Giao các tập: {'train∩val': 0, 'train∩test': 0, 'val∩test': 0}
+Hợp ba tập: 17509 ảnh
+
+Số ảnh mỗi lớp (Label: train/val/test):
+  0   Chinee Apple:   675 /   225 /   226
+  1        Lantana:   637 /   213 /   213
+  2    Parkinsonia:   618 /   206 /   207
+  3     Parthenium:   613 /   204 /   205
+  4 Prickly Acacia:   637 /   212 /   213
+  5    Rubber Vine:   605 /   202 /   202
+  6      Siam Weed:   644 /   215 /   215
+  7     Snake Weed:   609 /   203 /   204
+  8      Negatives:  5463 /  1821 /  1822
+========================================================================
+[T07 s0] epoch  1/1 train_loss 1.1784 val_loss 0.9347 val_macroF1 0.7258 val_top1 0.8049 (54.5s)
+[T07 s0] XONG. val macro-F1=0.7258 (epoch 1)
+========================================================================
+KIỂM TRA CHIA DỮ LIỆU (fold 0)
+========================================================================
+Số ảnh: train=10501 val=3501 test=3507 tổng=17509 (tỉ lệ 0.600/0.200/0.200)
+Giao các tập: {'train∩val': 0, 'train∩test': 0, 'val∩test': 0}
+Hợp ba tập: 17509 ảnh
+
+Số ảnh mỗi lớp (Label: train/val/test):
+  0   Chinee Apple:   675 /   225 /   226
+  1        Lantana:   637 /   213 /   213
+  2    Parkinsonia:   618 /   206 /   207
+  3     Parthenium:   613 /   204 /   205
+  4 Prickly Acacia:   637 /   212 /   213
+  5    Rubber Vine:   605 /   202 /   202
+  6      Siam Weed:   644 /   215 /   215
+  7     Snake Weed:   609 /   203 /   204
+  8      Negatives:  5463 /  1821 /  1822
+========================================================================
+[T14 s0] epoch  1/1 train_loss 1.2647 val_loss 0.9836 val_macroF1 0.6880 val_top1 0.7823 (54.0s)
+[T14 s0] XONG. val macro-F1=0.6880 (epoch 1)
+  exp_id      init    aug loss  val_macro_f1  delta_vs_TS00
+0   TS00  finetune  basic   ce      0.728905       0.000000
+3    T07  finetune  basic   ls      0.725786      -0.003118
+4    T14  finetune  color   ls      0.688004      -0.040901
+2    T03  finetune  color   ce      0.686588      -0.042317
+1    T01    frozen  basic   ce      0.334250      -0.394654
+Công thức thắng val: {'backbone': 'deit_tiny_patch16_224', 'init': 'finetune', 'aug': 'basic', 'loss': 'ce', 'mix': None}
+FINAL BUDGET: 12 epoch per seed; target 60.0 minutes
+STAGE: lab.train_final()
+========================================================================
+KIỂM TRA CHIA DỮ LIỆU (fold 0)
+========================================================================
+Số ảnh: train=10501 val=3501 test=3507 tổng=17509 (tỉ lệ 0.600/0.200/0.200)
+Giao các tập: {'train∩val': 0, 'train∩test': 0, 'val∩test': 0}
+Hợp ba tập: 17509 ảnh
+
+Số ảnh mỗi lớp (Label: train/val/test):
+  0   Chinee Apple:   675 /   225 /   226
+  1        Lantana:   637 /   213 /   213
+  2    Parkinsonia:   618 /   206 /   207
+  3     Parthenium:   613 /   204 /   205
+  4 Prickly Acacia:   637 /   212 /   213
+  5    Rubber Vine:   605 /   202 /   202
+  6      Siam Weed:   644 /   215 /   215
+  7     Snake Weed:   609 /   203 /   204
+  8      Negatives:  5463 /  1821 /  1822
+========================================================================
+[F01 s0] epoch  1/12 train_loss 0.8791 val_loss 0.5563 val_macroF1 0.7374 val_top1 0.8075 (54.1s)
+[F01 s0] epoch  2/12 train_loss 0.4445 val_loss 0.3829 val_macroF1 0.8154 val_top1 0.8660 (26.6s)
+[F01 s0] epoch  3/12 train_loss 0.3358 val_loss 0.3457 val_macroF1 0.8405 val_top1 0.8800 (26.7s)
+[F01 s0] epoch  4/12 train_loss 0.2678 val_loss 0.3168 val_macroF1 0.8568 val_top1 0.8935 (27.1s)
+[F01 s0] epoch  5/12 train_loss 0.2163 val_loss 0.2910 val_macroF1 0.8801 val_top1 0.9100 (27.4s)
+[F01 s0] epoch  6/12 train_loss 0.1702 val_loss 0.3049 val_macroF1 0.8632 val_top1 0.8995 (27.8s)
+[F01 s0] epoch  7/12 train_loss 0.1277 val_loss 0.2544 val_macroF1 0.8921 val_top1 0.9203 (28.0s)
+[F01 s0] epoch  8/12 train_loss 0.0992 val_loss 0.2531 val_macroF1 0.8931 val_top1 0.9197 (30.6s)
+[F01 s0] epoch  9/12 train_loss 0.0748 val_loss 0.2459 val_macroF1 0.8964 val_top1 0.9243 (31.2s)
+[F01 s0] epoch 10/12 train_loss 0.0603 val_loss 0.2347 val_macroF1 0.9049 val_top1 0.9309 (30.6s)
+[F01 s0] epoch 11/12 train_loss 0.0502 val_loss 0.2262 val_macroF1 0.9081 val_top1 0.9337 (30.2s)
+[F01 s0] epoch 12/12 train_loss 0.0438 val_loss 0.2257 val_macroF1 0.9074 val_top1 0.9334 (30.2s)
+[F01 s0] XONG. val macro-F1=0.9081 (epoch 11)
+  exp_id               phương pháp   mô hình/checkpoint  K  macro-F1 val  top-1 val   ECE val p50 (ms)  p95 (ms)   p99 (ms)       ảnh/s chi phí so với I00                                                                   ghi chú
+0    I00                1-view AMP            F01/seed0  1      0.908103   0.933733  0.024263  6.68845  12.20893  13.142485  149.511471                1.0                                                                          
+1    I01  hflip / mean probability            F01/seed0  2      0.918195   0.940874  0.017188  13.3638  19.67003  22.513115   74.829016           1.998041                                                                          
+2    I03       hflip / mean logits            F01/seed0  2      0.918199   0.940588  0.020968  13.3638  19.67003  22.513115   74.829016           1.998041                                                                          
+3    I07       temperature scaling            F01/seed0  1      0.908103   0.933733  0.005424  6.68845  12.20893  13.142485  149.511471                1.0  T=1.3548; fitted on val; calibration overhead excluded from model timing
+4    I05      ensemble 2 backbones  B04/seed0+B03/seed0  2      0.754170   0.824907  0.078587                                                                                 ['B04', 'B03']; latency not measured for this ensemble
+Phương pháp đã chốt: hflip_logit
+STAGE: lab.finals()
+Dùng lại F01/seed0
+========================================================================
+KIỂM TRA CHIA DỮ LIỆU (fold 0)
+========================================================================
+Số ảnh: train=10501 val=3501 test=3507 tổng=17509 (tỉ lệ 0.600/0.200/0.200)
+Giao các tập: {'train∩val': 0, 'train∩test': 0, 'val∩test': 0}
+Hợp ba tập: 17509 ảnh
+
+Số ảnh mỗi lớp (Label: train/val/test):
+  0   Chinee Apple:   675 /   225 /   226
+  1        Lantana:   637 /   213 /   213
+  2    Parkinsonia:   618 /   206 /   207
+  3     Parthenium:   613 /   204 /   205
+  4 Prickly Acacia:   637 /   212 /   213
+  5    Rubber Vine:   605 /   202 /   202
+  6      Siam Weed:   644 /   215 /   215
+  7     Snake Weed:   609 /   203 /   204
+  8      Negatives:  5463 /  1821 /  1822
+========================================================================
+[F01 s1] epoch  1/12 train_loss 0.8862 val_loss 0.5818 val_macroF1 0.6950 val_top1 0.7986 (54.6s)
+[F01 s1] epoch  2/12 train_loss 0.4560 val_loss 0.3833 val_macroF1 0.8180 val_top1 0.8658 (27.9s)
+[F01 s1] epoch  3/12 train_loss 0.3353 val_loss 0.3654 val_macroF1 0.8295 val_top1 0.8732 (29.1s)
+[F01 s1] epoch  4/12 train_loss 0.2865 val_loss 0.3436 val_macroF1 0.8420 val_top1 0.8866 (29.5s)
+[F01 s1] epoch  5/12 train_loss 0.2169 val_loss 0.2973 val_macroF1 0.8667 val_top1 0.9037 (29.9s)
+[F01 s1] epoch  6/12 train_loss 0.1764 val_loss 0.2835 val_macroF1 0.8727 val_top1 0.9095 (29.8s)
+[F01 s1] epoch  7/12 train_loss 0.1353 val_loss 0.2527 val_macroF1 0.8896 val_top1 0.9192 (30.0s)
+[F01 s1] epoch  8/12 train_loss 0.1048 val_loss 0.2527 val_macroF1 0.8998 val_top1 0.9249 (30.0s)
+[F01 s1] epoch  9/12 train_loss 0.0853 val_loss 0.2353 val_macroF1 0.9106 val_top1 0.9343 (30.1s)
+[F01 s1] epoch 10/12 train_loss 0.0576 val_loss 0.2350 val_macroF1 0.9072 val_top1 0.9314 (30.2s)
+[F01 s1] epoch 11/12 train_loss 0.0507 val_loss 0.2274 val_macroF1 0.9133 val_top1 0.9354 (30.0s)
+[F01 s1] epoch 12/12 train_loss 0.0479 val_loss 0.2275 val_macroF1 0.9171 val_top1 0.9377 (30.0s)
+[F01 s1] XONG. val macro-F1=0.9171 (epoch 12)
+========================================================================
+KIỂM TRA CHIA DỮ LIỆU (fold 0)
+========================================================================
+Số ảnh: train=10501 val=3501 test=3507 tổng=17509 (tỉ lệ 0.600/0.200/0.200)
+Giao các tập: {'train∩val': 0, 'train∩test': 0, 'val∩test': 0}
+Hợp ba tập: 17509 ảnh
+
+Số ảnh mỗi lớp (Label: train/val/test):
+  0   Chinee Apple:   675 /   225 /   226
+  1        Lantana:   637 /   213 /   213
+  2    Parkinsonia:   618 /   206 /   207
+  3     Parthenium:   613 /   204 /   205
+  4 Prickly Acacia:   637 /   212 /   213
+  5    Rubber Vine:   605 /   202 /   202
+  6      Siam Weed:   644 /   215 /   215
+  7     Snake Weed:   609 /   203 /   204
+  8      Negatives:  5463 /  1821 /  1822
+========================================================================
+[F01 s2] epoch  1/12 train_loss 0.8407 val_loss 0.6033 val_macroF1 0.7193 val_top1 0.7749 (56.4s)
+[F01 s2] epoch  2/12 train_loss 0.4298 val_loss 0.4025 val_macroF1 0.8101 val_top1 0.8618 (29.0s)
+[F01 s2] epoch  3/12 train_loss 0.3413 val_loss 0.3871 val_macroF1 0.8205 val_top1 0.8703 (29.8s)
+[F01 s2] epoch  4/12 train_loss 0.2696 val_loss 0.3102 val_macroF1 0.8619 val_top1 0.8963 (29.8s)
+[F01 s2] epoch  5/12 train_loss 0.2240 val_loss 0.2996 val_macroF1 0.8640 val_top1 0.8995 (30.4s)
+[F01 s2] epoch  6/12 train_loss 0.1839 val_loss 0.2681 val_macroF1 0.8868 val_top1 0.9155 (30.3s)
+[F01 s2] epoch  7/12 train_loss 0.1330 val_loss 0.2552 val_macroF1 0.8905 val_top1 0.9215 (30.2s)
+[F01 s2] epoch  8/12 train_loss 0.1114 val_loss 0.2294 val_macroF1 0.9011 val_top1 0.9269 (30.4s)
+[F01 s2] epoch  9/12 train_loss 0.0769 val_loss 0.2258 val_macroF1 0.9080 val_top1 0.9320 (30.1s)
+[F01 s2] epoch 10/12 train_loss 0.0627 val_loss 0.2202 val_macroF1 0.9106 val_top1 0.9343 (30.1s)
+[F01 s2] epoch 11/12 train_loss 0.0519 val_loss 0.2155 val_macroF1 0.9102 val_top1 0.9349 (30.1s)
+[F01 s2] epoch 12/12 train_loss 0.0511 val_loss 0.2148 val_macroF1 0.9088 val_top1 0.9337 (30.1s)
+[F01 s2] XONG. val macro-F1=0.9106 (epoch 10)
+STAGE: if PROFILE != "smoke":
+    from eval import load_group
+lab_day2.ipynb:11: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  "display_name": "Python 3"
+lab_day2.ipynb:21: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  "metadata": {},
+Sản phẩm: C:\Users\nguye\Documents\K20\K4-DAY02-NguyenVanThan-02859\local_runs\hour\deepweeds_submission.zip | report.md là bản nháp cần bổ sung phân tích lỗi/kết luận.
+Tổng thời gian (phút): 36.2
+Gói bài nộp: C:\Users\nguye\Documents\K20\K4-DAY02-NguyenVanThan-02859\local_runs\hour\deepweeds_submission.zip
+Đọc report.md và bổ sung kết luận, đánh đổi tốc độ/F1, giả thuyết lỗi trước khi nộp.
+COMPLETE: 36.2 minutes. C:\Users\nguye\Documents\K20\K4-DAY02-NguyenVanThan-02859\local_runs\hour\deepweeds_submission.zip

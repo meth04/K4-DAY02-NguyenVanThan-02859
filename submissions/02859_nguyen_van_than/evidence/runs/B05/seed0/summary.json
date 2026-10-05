@@ -1,0 +1,21 @@
+{
+  "exp_id": "B05",
+  "seed": 0,
+  "backbone": "mobilenetv3_large_100",
+  "init": "finetune",
+  "loss": "ce",
+  "aug": "basic",
+  "mix": null,
+  "epochs": 1,
+  "best_epoch": 1,
+  "epochs_run": 1,
+  "params_m": 4.213561,
+  "val_macro_f1": 0.45320819289655684,
+  "val_top1": 0.6083976006855184,
+  "val_balanced_acc": 0.4379702616377716,
+  "val_ece": 0.1704192873291614,
+  "train_time_per_epoch_s": 46.94694995880127,
+  "weight_tag": "ra_in1k",
+  "comparison_baseline": "TS00",
+  "wall_time_s": 54.68101380000007
+}

@@ -15,3 +15,8 @@ eval_out/
 _smoke/
 .venv-gpu/
 local_runs/
+# Submission evidence contains JSON/CSV/text only; checkpoints stay ignored.
+!submissions/02859_nguyen_van_than/evidence/runs/
+!submissions/02859_nguyen_van_than/evidence/runs/**/*.json
+!submissions/02859_nguyen_van_than/evidence/runs/**/*.csv
+!submissions/02859_nguyen_van_than/evidence/runs/**/*.txt
