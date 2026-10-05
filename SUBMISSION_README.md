@@ -9,7 +9,7 @@ có workbook, báo cáo đã phân tích, curves, dự đoán từng seed, confi
 Đã thêm đo độ trễ đầy đủ các phương pháp, Grad-CAM và đánh giá tối/mờ/nhiễu trên validation.
 Dataset ảnh và checkpoint giữ local theo yêu cầu lớp; các minh chứng nhỏ được commit.
 
-Kiểm tra offline: `python code/verify_submission.py` (numpy, pandas, openpyxl).
+Kiểm tra offline: `python code/verify_submission.py` (numpy, pandas, openpyxl, nbformat).
 `eval.py` gốc tính lại phần I: 10/20; A–H và điểm thưởng do giảng viên chấm.
 Báo cáo mới ở `submissions/02859_nguyen_van_than/report.md`; bản trong `local_runs/hour/report.md`
 là bản nháp tự sinh ban đầu. Gói hoàn thiện local: `local_runs/hour/deepweeds_submission_final.zip`.
@@ -17,16 +17,17 @@ là bản nháp tự sinh ban đầu. Gói hoàn thiện local: `local_runs/hour
 ## Chạy trên Colab
 
 Dùng **[code/lab_day2.ipynb](code/lab_day2.ipynb)**.
-Notebook tự tải code và eval.py từ GitHub theo một commit cố định, dùng các cell ngắn,
-đọc được. Mã huấn luyện nằm trong thư mục `code/`.
+Notebook đã có output: **13 cell thực thi hiển thị, 22 hình**, gồm EDA, kiểm tra pipeline,
+log/đồ thị train, bảng ablation/inference/chung kết, confusion/errors và Grad-CAM.
+Mặc định `VIEW_SAVED_RESULTS=True`: đọc artifact/log thật từ lượt local, không train/test lại;
+không cần GPU. Số thứ tự cell thuộc phiên hiển thị, không phải phiên train mới.
 
-1. Upload notebook lên https://colab.research.google.com/ qua File → Upload notebook.
-2. Runtime → Change runtime type → GPU (T4 hoặc GPU tốt hơn được cấp).
-3. Giữ PROFILE="fast", SAVE_TO_DRIVE=True, Run all và xác thực Drive.
-4. Cuối notebook tải deepweeds_submission.zip. Backup nằm trong
-   MyDrive/deepweeds_day2_v1/fast/. Ảnh train đọc từ /content.
-5. Đọc report.md bản nháp, bổ sung kết luận/giả thuyết lỗi từ số liệu thật;
-   tải thêm notebook có output để lưu bằng chứng thực nghiệm.
+1. [Mở trên Colab](https://colab.research.google.com/github/meth04/K4-DAY02-NguyenVanThan-02859/blob/main/code/lab_day2.ipynb) để xem output đã lưu.
+2. Nếu muốn train mới, đặt VIEW_SAVED_RESULTS=False và chọn Runtime → Change runtime type → GPU.
+3. Chọn PROFILE="hour" (128px), FINAL_EPOCHS=12 như lượt local, SESSION mới, SAVE_TO_DRIVE=True.
+4. Run all và xác thực Drive. Cuối notebook tải deepweeds_submission.zip;
+   ảnh train đọc từ /content, checkpoint/kết quả được backup Drive.
+5. Sau lượt train mới, File → Download → .ipynb để giữ output phiên đó.
 
 | Profile | Epoch khảo sát / chung kết | Mục đích |
 |---|---|---|
@@ -34,6 +35,12 @@ Notebook tự tải code và eval.py từ GitHub theo một commit cố định,
 | fast | 3 / 10 | Khảo sát ngắn, đủ nhóm thí nghiệm của kế hoạch; chất lượng cần kiểm chứng |
 | full | 12 / 15 | Thêm scratch/CutMix/focal, tăng ngân sách |
 | smoke | 1, tập con train/val | Kiểm tra pipeline; không test, không nộp |
+
+Bảng là ngân sách mặc định của module; notebook có output dùng FINAL_EPOCHS=12 khi train lại.
+Sinh mẫu notebook trống bằng `code/build_notebook.py` sẽ xoá output của file tạo lại;
+để tái xuất bản có output, dùng `python code/export_notebook_outputs.py --source-ref <commit đầy đủ đã publish chứa artifact và notebook_results.py>`.
+Exporter dùng nbformat/nbclient/ipykernel, đọc artifact local và thực thi các cell hiển thị,
+không gọi model. Artifact/cell có ghi rõ nguồn; không chèn output giả vào phiên train.
 
 Notebook `code/lab_day2.ipynb` đã thay bản cũ bằng bản mới ưu tiên tốc độ.
 Nếu không dùng Drive, đặt SAVE_TO_DRIVE=False; /content mất khi runtime bị xoá.

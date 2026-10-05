@@ -295,7 +295,13 @@ Kết quả thực nghiệm local: **accuracy 93,67% ± 0,30 điểm phần tră
 
 - [Báo cáo](report.md), [workbook 8 sheet](results.xlsx), [biểu đồ](curves/), [dự đoán](predictions/), [minh chứng rubric](RUBRIC_EVIDENCE.md).
 - [Mở notebook trên Google Colab](https://colab.research.google.com/github/meth04/K4-DAY02-NguyenVanThan-02859/blob/main/code/lab_day2.ipynb).
-- Mã training thực dùng tại `9747314cb5aa60fc727fefaa089aacc3de544d15`; snapshot trong `code/`, hash core trong `evidence/runs/source_manifest.json`. Notebook hiện tải bản sửa renderer `cd6b0eb2aafe44b30cead7eb8fb20a0885c30c95`; không thay core training.
+- Mã training thực dùng tại `9747314cb5aa60fc727fefaa089aacc3de544d15`; hash core trong `evidence/runs/source_manifest.json`. Các script xuất notebook/hiển thị/CLI được cập nhật sau lượt train; không thay core training hoặc dự đoán test.
+
+## Xem notebook có output
+
+`code/lab_day2.ipynb` đã có output: 13 cell đã thực thi hiển thị, 22 hình PNG, bảng và log từ lượt train gốc. Mặc định `VIEW_SAVED_RESULTS=True`; mở trên GitHub/Colab là xem được, không cần GPU hoặc train lại. Nếu Run all ở chế độ này, notebook tải artifact từ commit cố định và kiểm tra hash trước khi hiển thị. Số thứ tự cell thuộc phiên đọc/hiển thị kết quả, không phải phiên train mới.
+
+Để train lại trên Colab, đặt `VIEW_SAVED_RESULTS=False`, chọn GPU, SESSION mới, rồi Run all. `FINAL_EPOCHS=12` và PROFILE=hour tương ứng ngân sách local; đổi nếu cần ngân sách khác. Các chế độ được ghi rõ ở đầu notebook.
 
 ## Kiểm tra điểm từ CSV, không cần GPU hoặc checkpoint
 
@@ -321,7 +327,7 @@ python -m venv --system-site-packages .venv-gpu
 
 Dùng thư mục mới cho nghiên cứu mới. CLI probe GPU và chọn batch/precision theo tốc độ, epoch chung kết theo ngân sách; có thể khác cấu hình bản nộp trên phần cứng khác. Để tái lập cấu hình đã nộp, dùng settings trong `evidence/environment.json` và config từng seed: 128px, batch64, FP32/NCHW, workers2, cudnn benchmark off; khảo sát1epoch, final12epoch, seed0/1/2. Test một lần sau khi chốt trên val; không sửa cấu hình dựa vào test.
 
-Colab: chọn GPU, PROFILE=hour (128px), SAVE_TO_DRIVE=True, chạy cell theo thứ tự. Notebook hour mặc định final2epoch; thêm `lab.budget["final"] = 12` ngay sau khi tạo `lab`, trước phần backbone, nếu cần tái lập số epoch local. Để giữ precision/batch giống bản nộp, cập nhật `settings` trước khi tạo lab: `batch_size=64, amp=False, channels_last=False, num_workers=2, cudnn_benchmark=False`. Có thể cần giảm batch theo VRAM GPU được cấp, khi đó ghi rõ khác biệt. Giữ SESSION riêng cho mỗi nghiên cứu để không trộn nguồn/checkpoint. Thời gian và kết quả không thể bảo đảm giống trên phần cứng khác.
+Colab train: chọn GPU, VIEW_SAVED_RESULTS=False, PROFILE=hour (128px), FINAL_EPOCHS=12, SAVE_TO_DRIVE=True, chạy cell theo thứ tự. Để giữ precision/batch giống bản nộp, cập nhật `settings` trước khi tạo lab: `batch_size=64, amp=False, channels_last=False, num_workers=2, cudnn_benchmark=False`. Có thể cần giảm batch theo VRAM GPU được cấp, khi đó ghi rõ khác biệt. Giữ SESSION riêng cho mỗi nghiên cứu để không trộn nguồn/checkpoint. Thời gian và kết quả không thể bảo đảm giống trên phần cứng khác.
 
 ## Tái lập minh chứng bổ sung và đóng gói
 
@@ -410,7 +416,8 @@ def main():
         copy(root / name, out / "evidence" / name)
     for path in (root / "code").glob("*.py"):
         copy(path, out / "code" / path.name)
-    for name in ("submission_extras.py", "finalize_submission.py", "verify_submission.py", "make_results.py", "make_report.py", "lab_day2.ipynb"):
+    for name in ("submission_extras.py", "finalize_submission.py", "verify_submission.py", "make_results.py", "make_report.py", "lab_day2.ipynb",
+                 "notebook_results.py", "export_notebook_outputs.py", "build_notebook.py", "run_local.py", "verify_notebook.py"):
         copy(REPO / "code" / name, out / "code" / name)
     copy(REPO / "eval.py", out / "eval.py")
     copy(REPO / "requirements.txt", out / "requirements.txt")

@@ -167,7 +167,8 @@ def run(args):
                target_minutes=args.minutes, settings=settings))
     # Execute the actual notebook's EDA, pipeline checks and final analysis cells.
     nb = json.loads((workspace / "code/lab_day2.ipynb").read_text(encoding="utf-8"))
-    cells = [cell["source"] for cell in nb["cells"] if cell["cell_type"] == "code"]
+    cells = ["".join(cell["source"]) if isinstance(cell["source"], list) else cell["source"]
+             for cell in nb["cells"] if cell["cell_type"] == "code"]
     started = time.perf_counter()
     namespace = dict(lab=lab, PROFILE="hour", torch=torch, np=np, pd=pd, plt=plt, time=time,
                      STARTED=started, write_json=write_json, display=lambda value: print(value.to_string(), flush=True))
@@ -204,7 +205,7 @@ def run(args):
     print(f"FINAL BUDGET: {lab.budget['final']} epoch per seed; target {args.minutes} minutes", flush=True)
     execute("lab.train_final()")
     execute("lab.finals()")
-    execute('if PROFILE != "smoke":\n    from eval import load_group')
+    execute('cm = sum(')
     elapsed = time.perf_counter() - started
     write_json(workspace / "local_complete.json", dict(status="complete", elapsed_s=elapsed,
                archive=str(namespace["archive"]), target_minutes=args.minutes))

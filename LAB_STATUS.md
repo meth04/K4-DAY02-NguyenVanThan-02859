@@ -81,3 +81,11 @@ Bài nộp: [README](submissions/02859_nguyen_van_than/README.md),
 [rubric evidence](submissions/02859_nguyen_van_than/RUBRIC_EVIDENCE.md).
 ZIP hoàn thiện local: `local_runs/hour/deepweeds_submission_final.zip`.
 Kiểm tra offline: `python code/verify_submission.py`; tái lập theo README bài nộp.
+
+## Notebook có output
+
+Đã xuất lại `code/lab_day2.ipynb` bằng một phiên Jupyter đọc artifact thật:
+13 cell có output và execution_count, 22 ảnh nhúng, bảng/log của nghiên cứu gốc.
+Mặc định `VIEW_SAVED_RESULTS=True` để xem kết quả; đặt False để train lại trên Colab.
+Output hiển thị được đánh dấu rõ là kết quả local đã lưu; không train hoặc chạy test lại.
+Nhánh training trong notebook có output được kiểm tra trên CPU với tập con trong thư mục tạm.

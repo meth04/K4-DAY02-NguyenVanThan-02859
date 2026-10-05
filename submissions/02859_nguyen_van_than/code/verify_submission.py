@@ -104,6 +104,15 @@ def main():
             source = "".join(source) if isinstance(source, list) else source
             ast.parse(source)
             assert "SOURCE_BUNDLE" not in source
+    if notebook.get("metadata", {}).get("saved_results"):
+        import nbformat
+        nbformat.validate(nbformat.from_dict(notebook))
+        code_cells = [cell for cell in notebook["cells"] if cell["cell_type"] == "code"]
+        assert len(code_cells) == 13
+        assert [cell["execution_count"] for cell in code_cells] == list(range(1,14))
+        assert all(cell["outputs"] for cell in code_cells)
+        assert not any(output["output_type"] == "error" for cell in code_cells for output in cell["outputs"])
+        assert sum("image/png" in output.get("data", {}) for cell in code_cells for output in cell["outputs"]) == 22
     report = (root / "report.md").read_text(encoding="utf-8")
     assert "TODO" not in report
     for path in root.glob("*.md"):

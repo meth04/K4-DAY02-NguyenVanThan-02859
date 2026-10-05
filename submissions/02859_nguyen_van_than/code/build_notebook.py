@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_SOURCE_REF = "78debfce920f39780037fe56c9dd2c0cf562df71"
 
 
-def build(source_ref=None):
+def build(source_ref=None, write=True):
     if source_ref is None:
         environment_path = ROOT / "environment.json"
         if environment_path.exists():
@@ -289,6 +289,8 @@ Notebook không tự commit/push. Lưu notebook có output sau chạy bằng **F
                                   language_info=dict(name="python", version="3")), cells=cells)
     for i, item in enumerate(cells):
         item["id"] = f"deepweeds-{i:02d}"
+    if not write:
+        return notebook
     path = ROOT / "code" / "lab_day2.ipynb"
     path.write_text(json.dumps(notebook, indent=1, ensure_ascii=False), encoding="utf-8")
     print(f"Built {path.name}: {len(cells)} cells, {path.stat().st_size:,} bytes")
