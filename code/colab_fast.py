@@ -40,9 +40,25 @@ def read_json(path):
     return json.loads(Path(path).read_text(encoding="utf-8"))
 
 
+def _json_default(value):
+    if isinstance(value, np.generic):
+        return value.item()
+    if isinstance(value, np.ndarray):
+        return value.tolist()
+    if isinstance(value, torch.Tensor):
+        return value.detach().cpu().tolist()
+    if isinstance(value, Path):
+        return str(value)
+    raise TypeError(f"{type(value).__name__} is not JSON serializable")
+
+
 def write_json(path, value):
-    Path(path).parent.mkdir(parents=True, exist_ok=True)
-    Path(path).write_text(json.dumps(value, indent=2, ensure_ascii=False), encoding="utf-8")
+    path = Path(path)
+    content = json.dumps(value, indent=2, ensure_ascii=False, default=_json_default)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_suffix(path.suffix + ".tmp")
+    temporary.write_text(content, encoding="utf-8")
+    temporary.replace(path)
 
 
 def config_key(cfg):

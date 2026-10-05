@@ -266,8 +266,6 @@ def softmax_np(logits: np.ndarray) -> np.ndarray:
 # Vẽ đường cong
 # --------------------------------------------------------------------------- #
 def plot_curves(history: list[dict], path: str | Path, title: str) -> None:
-    import matplotlib
-    matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
     path = Path(path)

@@ -64,7 +64,7 @@ ROOT = f"/content/{SESSION}_{PROFILE}"
     cell("code", '''import sys, os, json, platform, subprocess, time
 from pathlib import Path
 subprocess.run([sys.executable, "-m", "pip", "install", "-q",
-                "timm>=1.0,<1.1", "openpyxl", "scikit-learn"], check=True)
+                "timm==1.0.30", "openpyxl", "scikit-learn"], check=True)
 import torch, torchvision, timm, numpy as np, pandas as pd
 assert torch.cuda.is_available(), "Chọn Runtime > Change runtime type > GPU trước khi train."
 torch.backends.cudnn.benchmark = True
@@ -235,8 +235,7 @@ manifest/dự đoán, tránh tự chạy test lần nữa.
     cell("code", '''lab.finals()
 ''')
     cell("markdown", "## 10. Đánh giá, workbook 7 sheet, báo cáo nháp và gói tải về")
-    cell("code", '''archive = lab.products()
-if PROFILE != "smoke":
+    cell("code", '''if PROFILE != "smoke":
     from eval import load_group
     group = load_group(str(lab.pred / "F01_seed*_test.csv"), str(lab.labels / "test_subset0.csv"), ref_what="test")
     cm = sum(metrics["confusion"] for metrics in group.metrics)
@@ -257,17 +256,12 @@ if PROFILE != "smoke":
         with Image.open(lab.images / row.Filename) as im: ax.imshow(im.convert("RGB"))
         ax.set_title(f"Thật: {dataset.CLASS_NAMES[int(row.y_true)]}\\nĐoán: {dataset.CLASS_NAMES[int(row.y_pred)]}", fontsize=9)
     plt.tight_layout(); plt.savefig(lab.curves / "F01_errors.png"); plt.show()
-    # Refresh archive to include the error-analysis figures.
-    from zipfile import ZipFile
-    with ZipFile(archive, "a") as out:
-        for name in ("F01_confusion.png", "F01_errors.png"):
-            out.write(lab.curves / name, f"curves/{name}")
-    lab.persist()
-    if lab.backup:
-        __import__("shutil").copy2(archive, lab.backup / archive.name)
+    archive = lab.products()
     print("Tổng thời gian (phút):", round((time.perf_counter() - STARTED) / 60, 1))
     print("Gói bài nộp:", archive)
     print("Đọc report.md và bổ sung kết luận, đánh đổi tốc độ/F1, giả thuyết lỗi trước khi nộp.")
+else:
+    archive = lab.products()
 ''')
     cell("markdown", """## 11. Tải sản phẩm
 

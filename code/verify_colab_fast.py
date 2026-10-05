@@ -15,7 +15,7 @@ from PIL import Image
 import model
 import train
 import dataset
-from colab_fast import FastLab, read_json, audit_catalog_labels
+from colab_fast import FastLab, read_json, write_json, audit_catalog_labels
 from eval import load_group
 
 
@@ -59,6 +59,20 @@ def main():
     try:
         with tempfile.TemporaryDirectory(dir=root / "_smoke") as tmp, restore_cwd(original_cwd):
             work = Path(tmp)
+            json_path = work / "json_scalars.json"
+            write_json(json_path, {"checks": [np.bool_(True), np.bool_(False)], "count": np.int64(3),
+                                  "loss": np.float32(0.25), "array": np.array([1, 2]),
+                                  "tensor": torch.tensor([3, 4]), "path": work})
+            decoded = read_json(json_path)
+            assert decoded["checks"] == [True, False] and decoded["count"] == 3
+            assert decoded["loss"] == 0.25 and decoded["array"] == [1, 2] and decoded["tensor"] == [3, 4]
+            try:
+                write_json(json_path, {"unsupported": object()})
+            except TypeError:
+                pass
+            else:
+                raise AssertionError("Unsupported values must still raise an error")
+            assert read_json(json_path) == decoded, "Failed JSON write must preserve the previous file"
             shutil.copytree(root / "code", work / "code", ignore=shutil.ignore_patterns("__pycache__", "*.ipynb"))
             for name in ("eval.py", "README.md", "GUIDE.md", "RUBRIC.md", "SUBMISSION_README.md", "LAB_STATUS.md", "requirements.txt"):
                 shutil.copy2(root / name, work / name)

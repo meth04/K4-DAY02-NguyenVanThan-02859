@@ -66,7 +66,7 @@ Dự đoán có/không T dùng cùng logits, không chạy model trên test thê
 Workbook/báo cáo chỉ sinh sau chạy thật; chưa có số liệu là chưa xong thực nghiệm.
 
 Môi trường: Python 3, PyTorch 2.x/CUDA và torchvision Colab có sẵn,
-timm>=1.0,<1.1, numpy, pandas, Pillow, scikit-learn, matplotlib, openpyxl.
+timm==1.0.30, numpy, pandas, Pillow, scikit-learn, matplotlib, openpyxl.
 Version/GPU/dtype/commit code thực tế lưu trong environment.json.
 
 Sinh lại notebook sau khi sửa code:
@@ -84,7 +84,22 @@ python code/verify_colab_fast.py
 
 Kiểm tra mới dùng ảnh giả trên CPU: train/checkpoint, calibration,
 CSV chuẩn eval.py, frozen BN, dùng lại lần chạy và không lặp test.
-Chưa thay thế đo hiệu năng/chất lượng trên DeepWeeds thật và Colab GPU.
+Hàm ghi JSON xử lý scalar NumPy (bao gồm `numpy.bool`), array, tensor và Path;
+kiểm tra pipeline trả về bool Python để lưu kết quả an toàn.
+
+Kiểm tra trực tiếp các cell notebook với ảnh DeepWeeds gốc:
+
+```bash
+python code/verify_notebook.py --labels-dir _smoke/deepweeds_labels
+```
+
+Đặt `images.zip` gốc ở thư mục repo và bốn CSV gốc (`labels.csv`,
+`train_subset0.csv`, `val_subset0.csv`, `test_subset0.csv`) trong thư mục chỉ định.
+Kiểm tra này chạy chuẩn bị/EDA trên đủ 17.509 ảnh, cell 5, cả 5 kiến trúc,
+ablation, suy luận, chung kết 3 seed, eval.py, workbook 7 sheet và xuất ZIP hai lần.
+Các lượt train kiểm tra dùng CPU, trọng số ngẫu nhiên, 18/9/9 ảnh và 1 epoch
+trong thư mục tạm; không thay đổi dữ liệu gốc. Chưa thay thế đo hiệu năng/chất lượng,
+AMP trên Colab GPU, tải trọng số pretrained và giao diện Drive.
 
 Xem tiến độ ban đầu trong [LAB_STATUS.md](LAB_STATUS.md).
 README/GUIDE/RUBRIC, eval.py và starter/tests gốc của lớp được giữ nguyên.

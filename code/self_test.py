@@ -31,6 +31,7 @@ import model as md           # noqa: E402
 
 
 def check(name: str, ok: bool, detail: str = "") -> bool:
+    ok = bool(ok)
     print(f"[{'PASS' if ok else 'FAIL'}] {name} {detail}")
     return ok
 
