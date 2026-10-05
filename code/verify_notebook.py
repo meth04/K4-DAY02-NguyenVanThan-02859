@@ -42,6 +42,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--labels-dir", type=Path, required=True)
     parser.add_argument("--profile", choices=("fast", "hour"), default="fast")
+    parser.add_argument("--published-notebook", action="store_true", help="Check saved notebook training branches without rebuilding it")
     args = parser.parse_args()
     labels = args.labels_dir.resolve()
     for name in ("labels", "train_subset0", "val_subset0", "test_subset0"):
@@ -50,9 +51,11 @@ def main():
     if not (ROOT / "images.zip").exists():
         raise FileNotFoundError("Place original DeepWeeds images.zip at the repository root")
     torch.set_num_threads(2)
-    build_notebook.build()
+    if not args.published_notebook:
+        build_notebook.build()
     nb = json.loads((ROOT / "code/lab_day2.ipynb").read_text(encoding="utf-8"))
-    cells = [cell["source"] for cell in nb["cells"] if cell["cell_type"] == "code"]
+    cells = ["".join(cell["source"]) if isinstance(cell["source"], list) else cell["source"]
+             for cell in nb["cells"] if cell["cell_type"] == "code"]
     for index, source in enumerate(cells):
         compile(source, f"notebook-cell-{index}", "exec")
     original_build = model.build_model
@@ -83,8 +86,9 @@ def main():
         namespace = dict(sys=sys, os=os, json=json, Path=Path, torch=torch, torchvision=torchvision,
                          timm=timm, np=np, pd=pd, time=time, platform=__import__("platform"),
                          display=lambda value: print(f"DISPLAY {type(value).__name__}", flush=True))
-        execute('PROFILE = "fast"', namespace)
-        namespace.update(ROOT=str(workspace), SAVE_TO_DRIVE=False, PROFILE=args.profile)
+        execute('PROFILE =', namespace)
+        namespace.update(ROOT=str(workspace), SAVE_TO_DRIVE=False, PROFILE=args.profile,
+                         VIEW_SAVED_RESULTS=False, FINAL_EPOCHS=1)
         with patch("urllib.request.urlretrieve", side_effect=lambda url, destination: shutil.copy2(fixture, destination)):
             execute("archive_path =", namespace)
         with patch.object(torch.cuda, "get_device_name", return_value="CPU verification"), \
@@ -127,9 +131,9 @@ def main():
             execute("lab.train_final()", namespace)
             assert len(namespace["inference_table"]) == 5
             execute("lab.finals()", namespace)
-            execute('if PROFILE != "smoke":\n    from eval import load_group', namespace)
+            execute('cm = sum(', namespace)
             # Rerun export/analysis cell: no duplicates in the resulting ZIP.
-            execute('if PROFILE != "smoke":\n    from eval import load_group', namespace)
+            execute('cm = sum(', namespace)
         archive_path = namespace["archive"]
         with ZipFile(archive_path) as archive:
             names = archive.namelist()
