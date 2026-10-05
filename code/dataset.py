@@ -129,7 +129,8 @@ def build_transforms(train: bool, img_size: int = 224, aug: str = "basic"):
     - "color": basic + ColorJitter (đổi màu).
     - "trivial": TrivialAugmentWide + RandomResizedCrop + lật ngang.
     - "randaug": RandAugment(num_ops=2, magnitude=9) + RandomResizedCrop + lật ngang.
-    Val/test: resize cạnh ngắn về 256 rồi CenterCrop(img_size) + Normalize. KHÔNG ngẫu nhiên.
+    Val/test: resize cạnh ngắn theo tỉ lệ 256/224 rồi CenterCrop(img_size) + Normalize.
+    224 px giữ nguyên resize 256 px. KHÔNG ngẫu nhiên.
     (Không dùng lật dọc: hướng sinh trưởng của cỏ là tín hiệu hợp lệ.)
     """
     aug = (aug or "basic").lower()
@@ -148,7 +149,7 @@ def build_transforms(train: bool, img_size: int = 224, aug: str = "basic"):
         return transforms.Compose(ops)
 
     # eval: giữ đúng khung nhìn, không ngẫu nhiên
-    resize = max(NATIVE_SIZE, img_size)
+    resize = round(img_size * NATIVE_SIZE / 224)
     ops = []
     if resize != img_size:
         ops.append(transforms.Resize(resize))

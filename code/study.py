@@ -45,7 +45,7 @@ def _load_model(cfg: tr.Config, seed: int, out_dir: str = "runs", fuse_bn: bool 
     if not ckpt.exists():
         raise FileNotFoundError(f"không thấy checkpoint {ckpt}")
     model = md.build_model(cfg.backbone, pretrained=False, num_classes=ds.NUM_CLASSES,
-                           drop_rate=cfg.drop_rate, init="finetune")
+                           drop_rate=cfg.drop_rate, init="finetune", img_size=cfg.img_size)
     model.load_state_dict(torch.load(ckpt, map_location="cpu")["state_dict"])
     model.eval()
     if fuse_bn:

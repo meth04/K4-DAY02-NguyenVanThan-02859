@@ -13,3 +13,5 @@ __pycache__/
 runs/
 eval_out/
 _smoke/
+.venv-gpu/
+local_runs/

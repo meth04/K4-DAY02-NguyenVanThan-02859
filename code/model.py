@@ -27,7 +27,7 @@ SUGGESTED_BACKBONES = {
 
 
 def build_model(name: str, pretrained: bool = True, num_classes: int = 9,
-                drop_rate: float = 0.0, init: str = "finetune"):
+                drop_rate: float = 0.0, init: str = "finetune", img_size: int = 224):
     """Tạo model phân loại `num_classes` lớp qua timm.
 
     `init` (trục A):
@@ -37,8 +37,9 @@ def build_model(name: str, pretrained: bool = True, num_classes: int = 9,
     """
     init = (init or "finetune").lower()
     use_pretrained = bool(pretrained) and init in ("frozen", "finetune")
+    options = {"img_size": img_size} if name.startswith(("deit_", "vit_", "swin_")) else {}
     model = timm.create_model(name, pretrained=use_pretrained, num_classes=num_classes,
-                              drop_rate=drop_rate)
+                              drop_rate=drop_rate, **options)
     if init == "frozen":
         freeze_backbone(model)
     return model

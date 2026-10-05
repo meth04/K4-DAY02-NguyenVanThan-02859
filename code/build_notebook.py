@@ -41,7 +41,8 @@ Sản phẩm: `results.xlsx`, `report.md` bản nháp, `curves/`, `predictions/`
 
 | PROFILE | Khảo sát / chung kết | Mục đích |
 |---|---|---|
-| `fast` (mặc định) | 3 / 10 epoch | Ít thí nghiệm nhất trong kế hoạch này, đủ số nhóm yêu cầu; chất lượng cần kiểm chứng |
+| `hour` | 1 / 2 epoch | 128 px, backbone nhẹ, nhắm ngân sách khoảng một giờ; cần đo trên máy thực tế |
+| `fast` (mặc định) | 3 / 10 epoch | Khảo sát 3 epoch, đủ số nhóm yêu cầu; chất lượng cần kiểm chứng |
 | `full` | 12 / 15 epoch | Nhiều epoch và thêm scratch/CutMix/focal, mất thời gian hơn |
 | `smoke` | 1 epoch, tập con train/val | Kiểm tra pipeline; không chạy test, không dùng nộp |
 
@@ -55,7 +56,7 @@ Không cam kết số phút hay điểm model khi chưa đo trên GPU được c
 xếp hạng khác khi train lâu. Mọi profile giữ đầy đủ tập test khi chạy chung kết.
 """)
     cell("markdown", "## 1. Cấu hình — thường chỉ cần giữ mặc định")
-    cell("code", '''PROFILE = "fast"              # fast | full | smoke
+    cell("code", '''PROFILE = "fast"              # hour | fast | full | smoke
 SAVE_TO_DRIVE = True           # Lưu thí nghiệm đã xong + best checkpoint; có bước xác thực Drive
 SESSION = "deepweeds_day2_v1"   # Đổi tên nếu muốn bắt đầu một nghiên cứu mới
 ROOT = f"/content/{SESSION}_{PROFILE}"
@@ -63,11 +64,13 @@ ROOT = f"/content/{SESSION}_{PROFILE}"
     cell("markdown", "## 2. Cài thư viện và kiểm tra GPU")
     cell("code", '''import sys, os, json, platform, subprocess, time
 from pathlib import Path
+# Compatibility with cuDNN engine selection on small/older GPUs; set before torch import.
+os.environ.setdefault("TORCH_CUDNN_V8_API_DISABLED", "1")
 subprocess.run([sys.executable, "-m", "pip", "install", "-q",
                 "timm==1.0.30", "openpyxl", "scikit-learn"], check=True)
 import torch, torchvision, timm, numpy as np, pandas as pd
 assert torch.cuda.is_available(), "Chọn Runtime > Change runtime type > GPU trước khi train."
-torch.backends.cudnn.benchmark = True
+torch.backends.cudnn.benchmark = False
 torch.set_float32_matmul_precision("high")
 torch.backends.cuda.matmul.allow_tf32 = True
 torch.backends.cudnn.allow_tf32 = True
@@ -112,12 +115,15 @@ if SAVE_TO_DRIVE:
     drive.mount("/content/drive")
     BACKUP = f"/content/drive/MyDrive/{SESSION}"
 from colab_fast import FastLab, write_json
-lab = FastLab(ROOT, PROFILE, backup=BACKUP)
+gpu_memory_gb = torch.cuda.get_device_properties(0).total_memory / 2**30
+settings = {"batch_size": 16 if gpu_memory_gb < 6 else 32, "cudnn_benchmark": False}
+lab = FastLab(ROOT, PROFILE, backup=BACKUP, settings=settings)
 environment = dict(python=platform.python_version(), torch=torch.__version__,
                    torchvision=torchvision.__version__, timm=timm.__version__,
                    numpy=np.__version__, pandas=pd.__version__,
                    gpu=torch.cuda.get_device_name(0), profile=PROFILE, amp_dtype=lab.dtype,
-                   source_repo=REPO, source_commit=SOURCE_COMMIT)
+                   source_repo=REPO, source_commit=SOURCE_COMMIT, settings=settings,
+                   cudnn_v8_disabled=os.environ.get("TORCH_CUDNN_V8_API_DISABLED"))
 write_json(root / "environment.json", environment)
 STARTED = time.perf_counter()
 print("Đọc ảnh / train:", root, "| Backup:", lab.backup)
@@ -155,7 +161,9 @@ checks = [self_test.test_focal_gamma0_equals_ce(), self_test.test_ls_eps0_equals
           self_test.test_fuse_conv_bn(), self_test.test_temperature()]
 assert all(checks), "Dừng: có kiểm tra pipeline chưa đạt."
 train.set_seed(0)
-tf = dataset.build_transforms(True, 224, "basic")
+check_cfg = lab.cfg()
+torch.backends.cudnn.benchmark = check_cfg.cudnn_benchmark
+tf = dataset.build_transforms(True, check_cfg.img_size, "basic")
 loader = dataset.make_loader(train_df.iloc[:16], lab.images, tf, 8, True, num_workers=0)
 x, y, _ = next(iter(loader))
 fig, axes = plt.subplots(1, 4, figsize=(12, 3))
@@ -163,7 +171,7 @@ for image, ax in zip(x[:4], axes):
     visible = image.permute(1, 2, 0).numpy() * np.array(dataset.IMAGENET_STD) + np.array(dataset.IMAGENET_MEAN)
     ax.imshow(visible.clip(0, 1)); ax.axis("off")
 plt.tight_layout(); plt.savefig(lab.curves / "augmentation.png"); plt.show()
-m = model.build_model("resnet18", pretrained=False).cuda()
+m = model.build_model("resnet18", pretrained=False, img_size=check_cfg.img_size).cuda()
 x, y = x.cuda(), y.cuda()
 m.train()
 with torch.no_grad():
@@ -187,8 +195,10 @@ lab.persist()
 ''')
     cell("markdown", """## 6. So sánh 5 backbone trên toàn bộ train/val
 
-Cùng seed 0, 224 px, batch 64, pretrained + fine-tune, CE, basic augmentation,
-AdamW và số epoch. ResNet18/50, ConvNeXt, DeiT tiny, MobileNetV3 đáp ứng nhóm kiến trúc.
+Cùng seed 0, kích thước ảnh/batch, pretrained + fine-tune, CE, basic augmentation,
+AdamW và số epoch. Batch chọn theo VRAM: 16 dưới 6 GB, 32 khi đủ bộ nhớ.
+`hour`: 128 px, ResNet18/34, ConvNeXt atto, DeiT tiny, MobileNetV3.
+Các profile còn lại: 224 px, ResNet18/50, ConvNeXt tiny, DeiT tiny, MobileNetV3.
 Mỗi epoch in thời gian; dùng số này để ước lượng thời gian còn lại.
 """)
     cell("code", '''backbone_table = lab.backbones()

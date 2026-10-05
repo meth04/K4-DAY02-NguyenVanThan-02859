@@ -22,9 +22,11 @@ import inference as inf
 import model as md
 import train as tr
 import benchmark as bm
+from cuda_utils import amp_dtype_for_device
 from eval import compute_metrics, save_predictions
 
 PROFILES = {
+    "hour": dict(screen=1, final=2),
     "fast": dict(screen=3, final=10),
     "full": dict(screen=12, final=15),
     "smoke": dict(screen=1, final=1),
@@ -32,6 +34,11 @@ PROFILES = {
 BACKBONES = [
     ("B01", "resnet18"), ("B02", "resnet50"),
     ("B03", "convnext_tiny"), ("B04", "deit_tiny_patch16_224"),
+    ("B05", "mobilenetv3_large_100"),
+]
+HOUR_BACKBONES = [
+    ("B01", "resnet18"), ("B02", "resnet34"),
+    ("B03", "convnext_atto"), ("B04", "deit_tiny_patch16_224"),
     ("B05", "mobilenetv3_large_100"),
 ]
 
@@ -103,12 +110,14 @@ def audit_catalog_labels(catalog, frames):
 
 
 class FastLab:
-    def __init__(self, root, profile="fast", backup=None):
+    def __init__(self, root, profile="fast", backup=None, settings=None):
         if profile not in PROFILES:
             raise ValueError(f"Profile phải thuộc {list(PROFILES)}")
         self.root = Path(root).resolve()
         self.profile = profile
-        self.budget = PROFILES[profile]
+        self.budget = dict(PROFILES[profile])
+        self.settings = dict(settings or {})
+        self.backbone_plan = HOUR_BACKBONES if profile == "hour" else BACKBONES
         self.backup = Path(backup) / profile if backup else None
         self.runs = self.root / "runs"
         self.pred = self.root / "predictions"
@@ -116,7 +125,7 @@ class FastLab:
         self.labels = self.root / "data" / "labels"
         self.images = self.root / "images"
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.dtype = "bfloat16" if self.device.type == "cuda" and torch.cuda.is_bf16_supported() else "float16"
+        self.dtype = self.settings.get("amp_dtype", amp_dtype_for_device(self.device))
         self.workers = min(4, os.cpu_count() or 2)
         for path in (self.runs, self.pred, self.curves, self.labels, self.images):
             path.mkdir(parents=True, exist_ok=True)
@@ -126,10 +135,10 @@ class FastLab:
                     shutil.copytree(self.backup / name, self.root / name, dirs_exist_ok=True)
         os.chdir(self.root)
         source_hashes = {name: hashlib.sha256((self.root / "code" / name).read_bytes()).hexdigest()
-                         for name in ("train.py", "dataset.py", "model.py", "losses.py", "colab_fast.py")}
+                         for name in ("train.py", "dataset.py", "model.py", "losses.py", "colab_fast.py", "cuda_utils.py")}
         manifest = self.runs / "source_manifest.json"
         if (manifest.exists() and read_json(manifest) != source_hashes
-                and any(self.runs.glob("*/seed*/config.json"))):
+                and any(self.runs.glob("*/seed*/summary.json"))):
             raise ValueError("Code khác lần chạy đã lưu; đổi tên SESSION để tránh trộn kết quả.")
         write_json(manifest, source_hashes)
 
@@ -200,8 +209,11 @@ class FastLab:
                     amp=self.device.type == "cuda", amp_dtype=self.dtype, channels_last=True,
                     fused_optimizer=True, save_last=False, batch_size=64,
                     epochs=self.budget["screen"], save_test_predictions=False)
+        if self.profile == "hour":
+            base.update(img_size=128, batch_size=32, warmup_epochs=0.1, cudnn_benchmark=False)
         if self.profile == "smoke":
             base.update(limit_train=64, limit_val=32, batch_size=16)
+        base.update(self.settings)
         base.update(kwargs)
         return tr.Config(**base)
 
@@ -251,13 +263,14 @@ class FastLab:
 
     def backbones(self):
         rows, meta, latency = [], {}, {}
-        for eid, name in BACKBONES:
-            rows.append(self.run_exp(self.cfg(exp_id=eid, backbone=name)))
-            model = md.build_model(name, pretrained=False).to(self.device).eval()
-            meta[name] = dict(params_m=md.count_params(model), gmac=md.count_gmacs(model),
+        for eid, name in self.backbone_plan:
+            cfg = self.cfg(exp_id=eid, backbone=name)
+            rows.append(self.run_exp(cfg))
+            model = md.build_model(name, pretrained=False, img_size=cfg.img_size).to(self.device).eval()
+            meta[name] = dict(params_m=md.count_params(model), gmac=md.count_gmacs(model, cfg.img_size),
                               weight_tag=md.pretrained_tag(model),
                               gmac_method="Conv2d + Linear; excludes attention matmuls (lower bound)")
-            latency[eid] = bm.latency_report(model, 1, 224, "fp32", self.device.type, 10, 50)
+            latency[eid] = bm.latency_report(model, 1, cfg.img_size, "fp32", self.device.type, 10, 50)
             del model
             gc.collect()
         write_json(self.runs / "backbone_meta.json", meta)
@@ -295,7 +308,8 @@ class FastLab:
 
     def load_model(self, eid, seed):
         cfg = tr.Config(**read_json(self.runs / eid / f"seed{seed}" / "config.json"))
-        model = md.build_model(cfg.backbone, pretrained=False, init=cfg.init).to(self.device).eval()
+        model = md.build_model(cfg.backbone, pretrained=False, init=cfg.init,
+                              img_size=cfg.img_size).to(self.device).eval()
         state = torch.load(self.runs / eid / f"seed{seed}" / "best.pt", map_location="cpu", weights_only=True)
         model.load_state_dict(state["state_dict"])
         if cfg.channels_last:
@@ -307,8 +321,8 @@ class FastLab:
         loader = ds.make_loader(frame, self.images, ds.build_transforms(False, cfg.img_size),
                                 cfg.batch_size, False, num_workers=self.workers, seed=cfg.seed)
         view = inf.view_hflip if flipped else None
-        with torch.autocast(self.device.type, enabled=amp and self.device.type == "cuda",
-                            dtype=torch.bfloat16 if self.dtype == "bfloat16" else torch.float16):
+        with torch.autocast(self.device.type, enabled=amp and cfg.amp and self.device.type == "cuda",
+                            dtype=torch.bfloat16 if cfg.amp_dtype == "bfloat16" else torch.float16):
             return inf.predict_logits(model, loader, self.device, view)
 
     def inference_study(self):
@@ -321,9 +335,9 @@ class FastLab:
         p0 = inf.aggregate_views([identity])
         ph = inf.aggregate_views([identity, flipped])
         pl = inf.aggregate_views([identity, flipped], "logit")
-        precision = "amp_bf16" if self.dtype == "bfloat16" else "amp"
-        lat0 = bm.latency_report(model, 1, 224, precision, self.device.type, 10, 50)
-        lat2 = bm.tta_latency(model, 2, 1, 224, precision, self.device.type, 10, 50)
+        precision = ("amp_bf16" if cfg.amp_dtype == "bfloat16" else "amp") if cfg.amp else "fp32"
+        lat0 = bm.latency_report(model, 1, cfg.img_size, precision, self.device.type, 10, 50)
+        lat2 = bm.tta_latency(model, 2, 1, cfg.img_size, precision, self.device.type, 10, 50)
         rows = []
 
         def add(eid, method, p, lat, note="", views=1):
@@ -341,7 +355,7 @@ class FastLab:
         add("I07", "temperature scaling", inf.apply_temperature(np.log(np.clip(p0, 1e-12, 1)), T), lat0,
             note=f"T={T:.4f}; fitted on val; calibration overhead excluded from model timing")
         # Fifth method uses predictions already produced during backbone training.
-        ranked = sorted(BACKBONES, key=lambda item: read_json(self.runs / item[0] / "seed0" / "summary.json")["val_macro_f1"], reverse=True)[:2]
+        ranked = sorted(self.backbone_plan, key=lambda item: read_json(self.runs / item[0] / "seed0" / "summary.json")["val_macro_f1"], reverse=True)[:2]
         frames = [pd.read_csv(self.pred / f"{eid}_seed0_val.csv").set_index("Filename").loc[fn] for eid, _ in ranked]
         probs = inf.ensemble_probs([frame[[f"p{i}" for i in range(9)]].to_numpy() for frame in frames])
         add("I05", "ensemble 2 backbones", probs, lat0,
@@ -482,7 +496,8 @@ class FastLab:
                     if file.is_file() and file.suffix not in {".pt", ".pyc"}:
                         out.write(file, str(file.relative_to(self.root)))
             for name in ("eval.py", "results.xlsx", "report.md", "selection.json", "environment.json",
-                         "SUBMISSION_README.md", "LAB_STATUS.md", "README.md", "GUIDE.md", "RUBRIC.md", "requirements.txt"):
+                         "SUBMISSION_README.md", "LAB_STATUS.md", "README.md", "GUIDE.md", "RUBRIC.md", "requirements.txt",
+                         "local_plan.json", "cuda_probe.json", "training.log"):
                 if (self.root / name).exists():
                     out.write(self.root / name, name)
         if self.backup:

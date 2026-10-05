@@ -17,6 +17,7 @@ import train
 import dataset
 from colab_fast import FastLab, read_json, write_json, audit_catalog_labels
 from eval import load_group
+from cuda_utils import amp_dtype_for_device
 
 
 @contextmanager
@@ -31,6 +32,12 @@ def main():
     torch.set_num_threads(2)
     root = Path(__file__).resolve().parent.parent
     original_cwd = Path.cwd()
+    with patch.object(torch.cuda, "get_device_capability", return_value=(7, 5)), \
+         patch.object(torch.cuda, "is_bf16_supported", return_value=True):
+        assert amp_dtype_for_device(torch.device("cuda")) == "float16", "T4/GTX 1650 must not select emulated BF16 as native AMP"
+    with patch.object(torch.cuda, "get_device_capability", return_value=(8, 0)), \
+         patch.object(torch.cuda, "is_bf16_supported", return_value=True):
+        assert amp_dtype_for_device(torch.device("cuda")) == "bfloat16"
     catalog = pd.DataFrame({"Filename": ["20170714-110407-3.jpg", "b.jpg", "c.jpg"], "Label": [1, 2, 3]})
     train_frame = pd.DataFrame({"Filename": ["20170714-110407-3.jpg"], "Label": [0]})
     frames = [train_frame, catalog.iloc[1:2].copy(), catalog.iloc[2:3].copy()]
@@ -80,6 +87,9 @@ def main():
             # A failed pre-training setup must not lock the user out after a code fix.
             manifest = lab.runs / "source_manifest.json"
             manifest.write_text(json.dumps({"old_failed_setup": True}))
+            failed = lab.runs / "B01" / "seed0" / "config.json"
+            failed.parent.mkdir(parents=True)
+            failed.write_text("{}")  # cuDNN can fail after writing config, before any epoch completes.
             lab = FastLab(work, "smoke")
             assert "old_failed_setup" not in read_json(manifest)
             lab.workers = 0

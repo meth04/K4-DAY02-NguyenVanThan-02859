@@ -42,6 +42,10 @@ def main():
     test_csv = str(Path(args.labels_dir) / "test_subset0.csv")
     val_csv = str(Path(args.labels_dir) / "val_subset0.csv")
     names = ev.load_names(labels_csv)
+    baseline_config = Path("runs") / args.baseline / "seed0" / "config.json"
+    baseline = json.loads(baseline_config.read_text(encoding="utf-8")) if baseline_config.exists() else {}
+    resolution = baseline.get("img_size", 224)
+    precision = "AMP" if baseline.get("amp", True) else "FP32"
 
     lines = ["# Báo cáo Lab Day 2 — Backbone, công thức huấn luyện và suy luận trên DeepWeeds", ""]
 
@@ -68,8 +72,8 @@ def main():
               "- Dataset: DeepWeeds, 17.509 ảnh 256×256, 9 lớp; chia sẵn fold 0 (60/20/20).",
               "- Chỉ số chính: macro-F1 (9 lớp). Phụ: top-1, balanced accuracy, F1 từng lớp, ECE (15 bin).",
               "- Chọn mọi thứ trên **val**; test chạy **một lần mỗi seed** ở cuối.",
-              "- Công thức nền `T00`: ImageNet pretrain, RandomResizedCrop(224)+flip, AdamW "
-              "(backbone 1e-4 / head 1e-3), wd 0.05 (không áp cho norm/bias), warmup+cosine, CE, AMP.",
+              f"- Công thức nền `T00`: ImageNet pretrain, RandomResizedCrop({resolution})+flip, AdamW "
+              f"(backbone 1e-4 / head 1e-3), wd 0.05 (không áp cho norm/bias), warmup+cosine, CE, {precision}.",
               ""]
 
     # --- Bảng từ xlsx ---

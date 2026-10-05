@@ -89,6 +89,7 @@ class Config:
     channels_last: bool = False
     amp_dtype: str = "float16"       # bfloat16 on supported GPUs; float16 on T4
     fused_optimizer: bool = False
+    cudnn_benchmark: bool = True
     patience: int | None = None      # val macro-F1 early stopping; None = all epochs
     save_last: bool = True
     limit_train: int | None = None    # chỉ dùng cho smoke-test; None = toàn bộ train
@@ -298,6 +299,7 @@ def plot_curves(history: list[dict], path: str | Path, title: str) -> None:
 def run(cfg: Config) -> dict:
     """Huấn luyện một cấu hình và lưu mọi thứ cần thiết. Trả về dict tóm tắt."""
     set_seed(cfg.seed)
+    torch.backends.cudnn.benchmark = cfg.cudnn_benchmark
     rdir = run_dir(cfg)
     rdir.mkdir(parents=True, exist_ok=True)
     (rdir / "config.json").write_text(json.dumps(asdict(cfg), indent=2, ensure_ascii=False))
@@ -323,7 +325,7 @@ def run(cfg: Config) -> dict:
 
     # 4. model + loss + optimizer
     model = md.build_model(cfg.backbone, pretrained=True, num_classes=ds.NUM_CLASSES,
-                           drop_rate=cfg.drop_rate, init=cfg.init)
+                           drop_rate=cfg.drop_rate, init=cfg.init, img_size=cfg.img_size)
     if cfg.channels_last:
         model = model.to(memory_format=torch.channels_last)
     model = model.to(device)

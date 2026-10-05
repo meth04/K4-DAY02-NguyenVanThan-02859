@@ -41,6 +41,7 @@ ROOT = Path(__file__).resolve().parent.parent
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--labels-dir", type=Path, required=True)
+    parser.add_argument("--profile", choices=("fast", "hour"), default="fast")
     args = parser.parse_args()
     labels = args.labels_dir.resolve()
     for name in ("labels", "train_subset0", "val_subset0", "test_subset0"):
@@ -83,10 +84,11 @@ def main():
                          timm=timm, np=np, pd=pd, time=time, platform=__import__("platform"),
                          display=lambda value: print(f"DISPLAY {type(value).__name__}", flush=True))
         execute('PROFILE = "fast"', namespace)
-        namespace.update(ROOT=str(workspace), SAVE_TO_DRIVE=False)
+        namespace.update(ROOT=str(workspace), SAVE_TO_DRIVE=False, PROFILE=args.profile)
         with patch("urllib.request.urlretrieve", side_effect=lambda url, destination: shutil.copy2(fixture, destination)):
             execute("archive_path =", namespace)
-        with patch.object(torch.cuda, "get_device_name", return_value="CPU verification"):
+        with patch.object(torch.cuda, "get_device_name", return_value="CPU verification"), \
+             patch.object(torch.cuda, "get_device_properties", return_value=type("GPU", (), {"total_memory": 4 * 2**30})()):
             execute("lab = FastLab", namespace)
         lab = namespace["lab"]
         assert lab.device.type == "cpu", "This bounded verifier is intended for CPU execution"

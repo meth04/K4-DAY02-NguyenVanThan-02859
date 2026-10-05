@@ -18,6 +18,7 @@ Notebook tự tải code và eval.py từ GitHub theo một commit cố định,
 
 | Profile | Epoch khảo sát / chung kết | Mục đích |
 |---|---|---|
+| hour | 1 / 2 mặc định | 128 px, ResNet18/34, ConvNeXt atto, DeiT tiny, MobileNetV3; ngân sách ngắn, cần đo thời gian thật |
 | fast | 3 / 10 | Khảo sát ngắn, đủ nhóm thí nghiệm của kế hoạch; chất lượng cần kiểm chứng |
 | full | 12 / 15 | Thêm scratch/CutMix/focal, tăng ngân sách |
 | smoke | 1, tập con train/val | Kiểm tra pipeline; không test, không nộp |
@@ -26,10 +27,40 @@ Notebook `code/lab_day2.ipynb` đã thay bản cũ bằng bản mới ưu tiên 
 Nếu không dùng Drive, đặt SAVE_TO_DRIVE=False; /content mất khi runtime bị xoá.
 Nếu bắt đầu nghiên cứu với code/cấu hình mới, đổi SESSION để tránh trộn kết quả.
 
+## Chạy trên máy local trong ngân sách khoảng một giờ
+
+Máy đã kiểm tra: Windows 11, GTX 1650 4 GB, Ryzen 5 6600HS, RAM 16 GB.
+Môi trường CUDA riêng nằm trong `.venv-gpu/`; Python hệ thống không bị thay đổi.
+[PyTorch cung cấp cặp torch 2.7.1 / torchvision 0.22.1 cho CUDA 12.6](https://pytorch.org/get-started/previous-versions/).
+Tạo môi trường từ Python đã có các thư viện trong requirements.txt:
+
+```powershell
+python -m venv --system-site-packages .venv-gpu
+.\.venv-gpu\Scripts\python.exe -m pip install torch==2.7.1 torchvision==0.22.1 --index-url https://download.pytorch.org/whl/cu126
+.\.venv-gpu\Scripts\python.exe -X utf8 -u code/run_local.py --minutes 60
+```
+
+`run_local.py` thử forward/backward/AdamW thật trên cả 5 kiến trúc, so tốc độ
+FP32/FP16 và channels-last, rồi chọn cùng một batch/precision cho các backbone.
+Ảnh 128 px; ResNet18/34, ConvNeXt atto, DeiT tiny và MobileNetV3; khảo sát 1 epoch.
+Sau khảo sát/ablation, ngân sách chung kết (1–12 epoch) dựa thời gian đo được,
+giữ cùng số epoch cho F01/T00 và đủ 3 seed. Không cắt, lọc hoặc chia lại tập dữ liệu.
+Test vẫn chỉ đọc sau khi chốt công thức trên val. Ngân sách ngắn có thể giảm điểm;
+không đảm bảo hoàn tất chính xác 60 phút khi GPU nóng, máy bận hoặc mạng tải chậm.
+Lần cài CUDA/tải pretrained đầu tiên có thể tốn thêm thời gian.
+
+Log và sản phẩm ở `local_runs/hour/`: `training.log`, `local_plan.json`,
+`cuda_probe.json`, `environment.json`, `results.xlsx`, `report.md`,
+`deepweeds_submission.zip`. Mọi thư mục môi trường/dataset/checkpoint được bỏ qua khi commit.
+Chạy lại lệnh trên dùng lại thí nghiệm hoàn tất. Khi đổi code/cấu hình, dùng `--root`
+với thư mục mới để giữ kết quả cũ. Có thể chỉ đo GPU với `--probe-only`.
+
 ## Thí nghiệm và tăng tốc
 
 - 5 backbone: ResNet18/50, ConvNeXt tiny, DeiT tiny, MobileNetV3 large.
-  Cùng fold 0, seed 0, 224 px, batch 64 và công thức nền.
+  Cùng fold 0, seed 0, độ phân giải, batch và công thức nền.
+  Notebook chọn batch 16 dưới 6 GB VRAM, 32 khi đủ bộ nhớ; tắt cuDNN benchmark
+  và dùng API cuDNN cũ để tránh lỗi chọn engine trên GPU nhỏ/cũ.
 - 3 trục: fine-tune/frozen; basic/color; CE/label smoothing.
   Thêm kết hợp color + label smoothing; full thêm scratch/CutMix/focal.
 - 4 cách suy luận ngoài mốc: hflip gộp xác suất/logit, temperature scaling,
