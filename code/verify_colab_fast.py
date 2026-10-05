@@ -15,7 +15,7 @@ from PIL import Image
 import model
 import train
 import dataset
-from colab_fast import FastLab, read_json
+from colab_fast import FastLab, read_json, audit_catalog_labels
 from eval import load_group
 
 
@@ -31,6 +31,22 @@ def main():
     torch.set_num_threads(2)
     root = Path(__file__).resolve().parent.parent
     original_cwd = Path.cwd()
+    catalog = pd.DataFrame({"Filename": ["20170714-110407-3.jpg", "b.jpg", "c.jpg"], "Label": [1, 2, 3]})
+    train_frame = pd.DataFrame({"Filename": ["20170714-110407-3.jpg"], "Label": [0]})
+    frames = [train_frame, catalog.iloc[1:2].copy(), catalog.iloc[2:3].copy()]
+    original_frames = [frame.copy() for frame in frames]
+    audit = audit_catalog_labels(catalog, frames)
+    assert len(audit["catalog_label_differences"]) == 1
+    for original, current in zip(original_frames, frames):
+        pd.testing.assert_frame_equal(original, current)
+    unknown = [frame.copy() for frame in frames]
+    unknown[1].loc[:, "Label"] = 4
+    try:
+        audit_catalog_labels(catalog, unknown)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("Unexpected label disagreement must still fail")
     with patch.object(model.timm, "create_model", wraps=model.timm.create_model) as create:
         m = model.build_model("resnet18", pretrained=False)
         assert create.call_args.kwargs["pretrained"] is False
@@ -47,6 +63,11 @@ def main():
             for name in ("eval.py", "README.md", "GUIDE.md", "RUBRIC.md", "SUBMISSION_README.md", "LAB_STATUS.md", "requirements.txt"):
                 shutil.copy2(root / name, work / name)
             lab = FastLab(work, "smoke")
+            # A failed pre-training setup must not lock the user out after a code fix.
+            manifest = lab.runs / "source_manifest.json"
+            manifest.write_text(json.dumps({"old_failed_setup": True}))
+            lab = FastLab(work, "smoke")
+            assert "old_failed_setup" not in read_json(manifest)
             lab.workers = 0
             rng = np.random.default_rng(0)
             for split, count in (("train", 18), ("val", 9), ("test", 9)):
@@ -60,6 +81,15 @@ def main():
             cfg = lab.cfg(exp_id="F01", backbone="resnet18", init="scratch", img_size=32,
                           batch_size=9, limit_train=18, limit_val=9, num_workers=0)
             result = lab.run_exp(cfg)
+            saved_manifest = manifest.read_text()
+            manifest.write_text(json.dumps({"old_trained_code": True}))
+            try:
+                FastLab(work, "smoke")
+            except ValueError:
+                pass
+            else:
+                raise AssertionError("Changed code must still reject existing training runs")
+            manifest.write_text(saved_manifest)
             assert result["epochs_run"] == 1
             assert not (lab.pred / "F01_seed0_test.csv").exists()
             assert not (lab.runs / "F01" / "seed0" / "last.pt").exists()

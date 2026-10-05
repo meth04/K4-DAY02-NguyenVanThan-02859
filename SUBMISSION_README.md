@@ -59,6 +59,9 @@ Latency model: batch 1, warmup 10, 50 lần, synchronize, cùng AMP dtype suy lu
 chưa gồm decode/resize/hiệu chuẩn; latency ensemble chưa đo.
 
 Checkpoint chọn bằng macro-F1 val. Nhiệt độ T khớp val từng seed.
+Dữ liệu gốc có một nhãn lệch: `20170714-110407-3.jpg` là Label 0 trong train fold 0,
+nhưng Label 1 trong labels.csv. Giữ nguyên CSV fold theo S1, ghi chênh lệch vào
+`logs/split_check.json` và báo cáo; các lỗi nhãn khác vẫn làm kiểm tra dừng.
 Dự đoán có/không T dùng cùng logits, không chạy model trên test thêm.
 Workbook/báo cáo chỉ sinh sau chạy thật; chưa có số liệu là chưa xong thực nghiệm.
 

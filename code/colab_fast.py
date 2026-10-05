@@ -50,6 +50,42 @@ def config_key(cfg):
             if k not in {"images_dir", "labels_dir", "out_dir", "pred_dir", "curves_dir", "num_workers"}}
 
 
+def audit_catalog_labels(catalog, frames):
+    """Keep fold CSV labels authoritative, while auditing the original catalog.
+
+    The upstream fold-0 train CSV labels 20170714-110407-3.jpg as 0; the
+    upstream labels.csv labels it as 1. The lab requires unmodified fold CSVs.
+    Reject other discrepancies rather than silently accepting damaged files.
+    """
+    if catalog.Filename.duplicated().any():
+        raise ValueError("labels.csv có Filename trùng.")
+    reference = catalog.set_index("Filename").Label
+    union = pd.concat(frames, ignore_index=True)
+    if union.Filename.duplicated().any():
+        raise ValueError("Các CSV fold có Filename trùng.")
+    if set(union.Filename) != set(reference.index):
+        raise ValueError("Danh sách ảnh trong fold và labels.csv không khớp.")
+    for labels in (catalog.Label, union.Label):
+        if not labels.isin(range(ds.NUM_CLASSES)).all():
+            raise ValueError("Label phải là số nguyên trong khoảng 0..8.")
+    known = {("train", "20170714-110407-3.jpg", 0, 1)}
+    differences = []
+    for split, frame in zip(("train", "val", "test"), frames):
+        catalog_labels = reference.loc[frame.Filename].to_numpy()
+        mismatched = frame.Label.to_numpy() != catalog_labels
+        for (_, row), catalog_label in zip(frame.loc[mismatched].iterrows(), catalog_labels[mismatched]):
+            item = (split, row.Filename, int(row.Label), int(catalog_label))
+            if item not in known:
+                raise ValueError(f"Nhãn khác labels.csv ngoài trường hợp đã xác nhận ở dữ liệu gốc: {item}")
+            differences.append(dict(split=split, Filename=row.Filename, fold_label=int(row.Label),
+                                    catalog_label=int(catalog_label)))
+    if differences:
+        print("Dữ liệu gốc có 1 nhãn khác giữa labels.csv và train_subset0.csv:")
+        print(pd.DataFrame(differences).to_string(index=False))
+        print("Giữ nguyên nhãn CSV fold 0 theo yêu cầu lab; ghi chênh lệch vào split_check.json.")
+    return dict(label_policy="original fold CSVs", catalog_label_differences=differences)
+
+
 class FastLab:
     def __init__(self, root, profile="fast", backup=None):
         if profile not in PROFILES:
@@ -76,7 +112,8 @@ class FastLab:
         source_hashes = {name: hashlib.sha256((self.root / "code" / name).read_bytes()).hexdigest()
                          for name in ("train.py", "dataset.py", "model.py", "losses.py", "colab_fast.py")}
         manifest = self.runs / "source_manifest.json"
-        if manifest.exists() and read_json(manifest) != source_hashes:
+        if (manifest.exists() and read_json(manifest) != source_hashes
+                and any(self.runs.glob("*/seed*/config.json"))):
             raise ValueError("Code khác lần chạy đã lưu; đổi tên SESSION để tránh trộn kết quả.")
         write_json(manifest, source_hashes)
 
@@ -133,14 +170,10 @@ class FastLab:
                 temp.replace(path)
         frames = ds.load_split(self.labels)
         info = ds.check_split(*frames, self.images)
-        write_json(self.runs / "split_check.json", info)
         full = pd.read_csv(self.labels / "labels.csv")
         observed = full.Label.value_counts().sort_index().reindex(range(9), fill_value=0)
-        union = pd.concat(frames, ignore_index=True)
-        assert not union.Filename.duplicated().any(), "CSV chứa ảnh trùng"
-        ref = full.set_index("Filename").Label
-        assert union.Filename.isin(ref.index).all()
-        assert np.array_equal(ref.loc[union.Filename].to_numpy(), union.Label.to_numpy())
+        info["label_audit"] = audit_catalog_labels(full, frames)
+        write_json(self.runs / "split_check.json", info)
         expected = [1125, 1064, 1031, 1022, 1062, 1009, 1074, 1016, 9106]
         print(pd.DataFrame({"lớp": ds.CLASS_NAMES, "đếm thật": observed.values, "Table 1": expected}))
         return frames, info
@@ -405,6 +438,10 @@ class FastLab:
                 dst = self.root / "logs" / src.relative_to(self.runs)
                 dst.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(src, dst)
+        for name in ("split_check.json", "pipeline_checks.json"):
+            if (self.runs / name).exists():
+                (self.root / "logs").mkdir(exist_ok=True)
+                shutil.copy2(self.runs / name, self.root / "logs" / name)
         with (self.root / "report.md").open("a", encoding="utf-8") as stream:
             stream.write(f"\n## Ngân sách và lựa chọn tự động\n\nProfile `{self.profile}`: khảo sát "
                          f"{self.budget['screen']} epoch, chung kết {self.budget['final']} epoch; 3 seed. "
@@ -414,6 +451,13 @@ class FastLab:
                          "Ablation dùng TS00 cùng ngân sách; T00 là mốc chung kết với cùng ngân sách F01. "
                          "Khảo sát chỉ có 1 seed nên chưa thể kết luận cải thiện nhỏ vượt nhiễu. "
                          f"Suy luận chọn trên val: `{self.method}`, hiệu chuẩn T riêng mỗi seed trên val.\n")
+            split_check = self.runs / "split_check.json"
+            if split_check.exists():
+                differences = read_json(split_check).get("label_audit", {}).get("catalog_label_differences", [])
+                for row in differences:
+                    stream.write(f"\nDữ liệu gốc: ảnh `{row['Filename']}` trong `{row['split']}` có Label "
+                                 f"{row['fold_label']} ở CSV fold, nhưng {row['catalog_label']} ở labels.csv. "
+                                 "Giữ nguyên nhãn CSV fold theo S1; không sửa, lọc hay chia lại dữ liệu.\n")
         self.persist()
         archive = self.root / "deepweeds_submission.zip"
         with ZipFile(archive, "w") as out:
